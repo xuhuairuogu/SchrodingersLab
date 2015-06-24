@@ -15,21 +15,23 @@ function [error, minimum, maximum] = nlse_6_NS(dt)
 %       gamma:  Strength of nonlinearity
 
 Nx = 2^7;                               % Number of fourier modes/spatial nodes
-Tmax = 100;                            % Maximum time to run simulation
+Tmax = 50;                            % Maximum time to run simulation
 Nt = Tmax/dt;                           % Number of temporal nodes
-interval = 50;                          % Interval for caputring image for graph
+interval = 10;                          % Interval for caputring image for graph
 Lx = 2*pi;                              % box size = [-Lx/2, Lx/2)
 psi_0 = '1 + 1e-6*cos(3*x)';           % Initial wave function
 gamma = -1;                             % Strength of nonlinearity
 
-dx = Lx/Nx;                             % Spatial step size
-x = (-Nx/2:1:Nx/2-1)'*dx;               % Grid points
+%dx = Lx/Nx;                             % Spatial step size
+x = (-Nx/2:1:Nx/2-1)'*Lx/Nx;               % Grid points
+t = 0:dt:Tmax;
 psi = eval(psi_0); PSI = psi;           % Find initial condition
 FULL = psi;
 k = 2*(-Nx/2:1:Nx/2-1)'*pi/Lx;          % Wavenumbers
 k2 = k.^2;                              % Squares of wave numbers
 
 E = energy(psi, k2, Nx, gamma);         % Initial energy energy
+
 
 for m = 1:1:Nt                          % Start time evolution
 
@@ -49,17 +51,16 @@ end
 
 % Plot results
 figure
-d = [0:interval:Nt]';
-t = d*dt;
-surf(x,t,abs(PSI).^2', 'EdgeColor', 'none')
-ylim([0, max(t)])
+d = (0:interval:Nt)';
+t2 = d*dt;
+surf(x,t2,abs(PSI).^2', 'EdgeColor', 'none')
+ylim([0, max(t2)])
 xmin = x(1); xmax = x(Nx);
 xlim([xmin, xmax])
 colorbar('eastoutside')
 ylabel('t')
 xlabel('x')
 zlabel('|\psi|^2')
-view([0 0 90]);
 
 % Plot energy error
 E0 = E(1);
@@ -69,11 +70,10 @@ plot(linspace(0, Tmax, Nt+1), dE)
 xlabel('Time'); ylabel('E-E0'); title(sprintf('dt = %0.4f', dt))
 
 error = sum(dE)*dt;                     % Find integrated energy error
-minimum = min(dE);                      % Find minimum energy error (for peak)
-maximum = max(dE);                      % Find maximum energy error (for peak)
+minimum = min(dE);
+maximum = max(dE);
 
-[m1, i1] = max(abs(FULL).^2);
-[m11, j1] = max(m1);
+[m1 i1] = max(abs(FULL).^2);
+[m11 j1] = max(m1);
 k1 = i1(j1);
-fprintf('x: %.3f, y: %.3f, peak: %.3f\n.', x(k1), j1*dt, m11);
-ab(FULL(:, j1), x(k1), j1*dt, m11, x);
+ab(FULL, x, t, k1, j1, m11);
