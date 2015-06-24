@@ -15,7 +15,7 @@ function [error, minimum, maximum] = nlse_4(dt)
 %       gamma:  Strength of nonlinearity
 
 Nx = 2^7;                               % Number of fourier modes/spatial nodes
-Tmax = 50;                            % Maximum time to run simulation
+Tmax = 100;                            % Maximum time to run simulation
 Nt = Tmax/dt;                           % Number of temporal nodes
 interval = 50;                          % Interval for caputring image for graph
 Lx = 2*pi;                              % box size = [-Lx/2, Lx/2)

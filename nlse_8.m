@@ -18,7 +18,7 @@ Nx = 2^7;                               % Number of fourier modes/spatial nodes
 Tmax = 100;                            % Maximum time to run simulation
 Nt = Tmax/dt;                           % Number of temporal nodes
 interval = 50;                          % Interval for caputring image for graph
-Lx = 4*pi;                              % box size = [-Lx/2, Lx/2)
+Lx = 2*pi;                              % box size = [-Lx/2, Lx/2)
 psi_0 = '1 + 1e-6*cos(3*x)';           % Initial wave function
 gamma = -1;                             % Strength of nonlinearity
 
@@ -92,8 +92,8 @@ error = sum(dE)*dt;                     % Find integrated energy error
 minimum = min(dE);                      % Find minimum energy error (for peak)
 maximum = max(dE);                      % Find maximum energy error (for peak)
 
-[m1 i1] = max(abs(FULL).^2);
-[m11 j1] = max(m1);
+[m1, i1] = max(abs(FULL).^2);
+[m11, j1] = max(m1);
 k1 = i1(j1);
 fprintf('x: %.3f, y: %.3f, peak: %.3f\n.', x(k1), j1*dt, m11);
 ab(FULL(:, j1), x(k1), j1*dt, m11, x);
