@@ -1,10 +1,25 @@
-% High NLSE, a MATLAB solver for the nonlinear Schrodinger Equation.
-% Coded by Omar Ashour, Texas A&M University at Qatar.
-% Last revision: 29/6/2015.
+% Copyright 2015, Omar Ashour.
+% This sourcecode is available from <https://github.com/oashour/HighNLSE/>
+%
+% This file is part of HighNLSE.
+% 
+% HighNLSE is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% HighNLSE is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
 close all
 clear all
 
+% Simulation parameters
 dt = 0.01;                              % Temporal step size
 Nx = 2^7;                               % Number of fourier modes/spatial nodes
 Tmax = 50;                              % Maximum time to run simulation
@@ -15,6 +30,7 @@ psi_0 = '1 + 1e-16*cos(3*x)';           % Initial wave function
 gamma = -1;                             % Strength of nonlinearity
 method = 'T2';
 
+% Calculated parameters
 dx = Lx/Nx;                             % Spatial step size
 x = (-Nx/2:1:Nx/2-1)'*dx;               % Spatial grid points
 t = 0:dt:Tmax;                          % Temporal grid points
