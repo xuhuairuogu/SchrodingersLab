@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function [] = a_plot(PSI, Nx, t, num)
+function [A_0, time] = a_plot(PSI, Nx, t, num)
 % FUNCTION: Plots analytical function of r, c, d, e vs actual data
 % INPUT:
 %       PSI: full spatiotemporal wave function
@@ -26,28 +26,71 @@ function [] = a_plot(PSI, Nx, t, num)
 % See the file recon for more info on the analytical fit.
 
 % Prepare the actual data
-J = 10;                                     % Scaling down of number of points
+J = 10;                                    % Scaling down of number of points
 PSI_k = abs(fft(PSI'))/Nx;                  % Absolute normalized fft
 data = log(PSI_k(1:num, 1:J:end));          % Our data
-
-% Prepare the analytical fit
-r = sqrt(3)/2;                              % Parameter
-c = 37.883;                                 % Parameter
-d = 0.5333;                                 % Parameter
-e = 1.86;                                   % Parameter
-
-[tg, kg] = meshgrid(t, 1:num-1);            % mesh t and k for 2D calculations
-A_k = exp(-kg*r.*sqrt(d+e*(tg-c/r).^2));    % A_k for all k and t
+time = t;
+r = sqrt(3)/2;                               % Parameter
+[tg, kg] = meshgrid(time, 1:num-1);            % mesh t and k for 2D calculations
+c = 43.8786;
+A_k = exp(r*kg.*(tg-c));
 A_0 = sqrt(1 - 2*sum(A_k.^2));              % A_0
 
-
+fit = log([A_0; A_k]);
 % Plot
 figure
-plot(t, log(A_0), '-')
-hold all
-plot(t, log(A_k), '-')
-hold all
-plot(t(1:J:end), data, '+'); grid on;
+%fittt = plot(time, fit, '-', 'LineWidth', 1.5);
+%hold on
+data = plot(t(1:J:end), data, 'o', 'MarkerSize', 6); grid on;
 ylim([-50, 5]);
-    
+xlim([0, max(t)]);
+xlabel('t');
+ylabel('log(|A_k|)');
+%legend([data, fittt], 'Data', 'Fit')
+
+% % Extra plot
+% k = (1:num-1);
+% index_1 = find(t == 10);
+% index_2 = find(t == 45);
+% time = t(index_1:index_2);
+% m = zeros(1, length(time));
+% 
+% gif = 0;
+% if gif
+%     figure(1)
+%     filename = 'test.gif';
+% end
+% for i = 1:length(time)
+%     index = t == time(i);
+%     disp([i length(time)])
+%     A_peak = data(2:num, index)';
+%  
+%     result = polyfit(k(1:2),A_peak(1:2),1);
+%     m(i) = result(1);
+% 
+%     if gif
+%         plot(k, A_peak); 
+%         xlabel('k'); ylabel('log(|A_k)');
+%         xlim([min(k) max(k)]); ylim([-40, 0]);
+%         drawnow
+%         title(sprintf('t = %f', time(i))); 
+% 
+%        frame = getframe(1);
+%        im = frame2im(frame);
+%        [imind,cm] = rgb2ind(im,256);
+%        if i == 1;
+%            imwrite(imind,cm,filename,'gif', 'Loopcount',inf, 'DelayTime', 0);
+%        else
+%            imwrite(imind,cm,filename,'gif','WriteMode','append', 'DelayTime', 0);
+%        end  
+%     end
+% end
+% figure
+% plot(time(1:30:end), m(1:30:end), 'b+');
+% xlabel('t'); ylabel('Slope');
+% anal = -r*sqrt(d+(time-43.74).^2);
+% hold on
+% plot(time, anal, 'r-', 'LineWidth', 2);
+% legend('Data', 'Analytical', 0);
+
 end

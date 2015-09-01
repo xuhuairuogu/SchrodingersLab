@@ -22,13 +22,13 @@ clear all
 % Simulation parameters
 dt = 0.01;                              % Temporal step size
 Nx = 2^7;                               % Number of fourier modes/spatial nodes
-Tmax = 50;                              % Maximum time to run simulation
+Tmax = 1000;                            % Maximum time to run simulation
 Nt = Tmax/dt;                           % Number of temporal nodes
-intr = 10;                              % Interval for caputring image for graph
+intr = 1;                               % Interval for caputring image for graph
 Lx = 2*pi;                              % box size = [-Lx/2, Lx/2)
 psi_0 = '1 + 1e-16*cos(3*x)';           % Initial wave function
 gamma = -1;                             % Strength of nonlinearity
-method = 'T2';
+method = 'T8';
 
 % Calculated parameters
 dx = Lx/Nx;                             % Spatial step size
@@ -111,7 +111,7 @@ for j = 1:1:Nt                          % Start time evolution
 end
 
 % Plot results
-surf(x,t,abs(PSI).^2, 'EdgeColor', 'none');
+surf(x,t(1:intr:end),abs(PSI(1:intr:end, :)).^2, 'EdgeColor', 'none');
 ylim([0, max(t)])
 xmin = x(1); xmax = x(Nx);
 xlim([xmin, xmax])
@@ -119,7 +119,9 @@ colorbar('eastoutside')
 ylabel('t'); xlabel('x'); zlabel('|\psi|^2');
 
 % Some special purpose functions
-% a_plot(PSI, Nx, t, 5);
-% recon(37.883, 0.5333, 1.86, Nx, 5000, max(t));
-% ab(PSI, x, t, max(max(abs(psi).^2)), 3/8);      
+maxima = regions(PSI, x, t);
+% a_plot(PSI, Nx, t, 6);
+b_plot(PSI, Nx, t, 6, maxima(1,1));
+% recon(Nx, 5000, max(t), maxima(1,1));
+% [~,~,shift] = ab(PSI, x, t, max(max(abs(psi).^2)), 3/8);      
 % energy(PSI, t, k2, Nx, gamma, dt);

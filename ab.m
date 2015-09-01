@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function [spatial, temporal] = ab(psi, x, t, peak, a)
+function [spatial, temporal, t_shift] = ab(psi, x, t, peak, a)
 % FUNCTION: [spatial temporal] = ab(psi, x, t, peak)
 %           Compares a full time evolution of a wave function psi to an Akhmediev
 %           breather using supplied value of a
@@ -60,18 +60,23 @@ figure
 plot(x, abs(psi_s).^2, '-r', 'LineWidth', 2); % Analytical spatial
 grid on; hold on;                             % Grid
 plot(x, abs(spatial).^2, 'b+', ...            % Actual spatial
-     'MarkerFaceColor', 'b');
+     'MarkerFaceColor', 'b', 'MarkerSize', 8);
 xlim([-pi, pi]);                              % Limits
-xlabel('t'); ylabel('|\psi|^2|');             % Labels
-title(sprintf('x=%.3f, t=%.3f, peak=%.3f, th-peak=%.3f.', ... % Title
-              x_shift, t_shift, peak, max(abs(psi_s).^2)));   %
-
+xlabel('x'); ylabel('|\psi|^2|');             % Labels
+%title(sprintf('x=%.3f, t=%.3f, peak=%.3f, th-peak=%.3f.', ... % Title
+%              x_shift, t_shift, peak, max(abs(psi_s).^2)));   %
+legend('Analytical', 'Calculation', 0); 
+          
 figure
 plot(t, abs(psi_t).^2, '-r', 'LineWidth', 2); % Analytical temporal
 grid on; hold on;                             % Grid
-plot(t, abs(temporal).^2, 'b+', ...           % Actual temporal
-     'MarkerFaceColor', 'b');
+plot(t(1:10:end), abs(temporal(1:10:end)).^2, 'b+', ...           % Actual temporal
+     'MarkerFaceColor', 'b', 'MarkerSize', 8);
 xlim([t_shift-5, t_shift+5]);                 % Limits
 xlabel('t'); ylabel('|\psi|^2|');             % Labels
-title(sprintf('x=%.3f, t=%.3f, peak=%.3f, th-peak=%.3f.', ... % Title
-              x_shift, t_shift, peak, max(abs(psi_s).^2)));   %
+%title(sprintf('x=%.3f, t=%.3f, peak=%.3f, th-peak=%.3f.', ... % Title
+%              x_shift, t_shift, peak, max(abs(psi_s).^2)));   %
+legend('Analytical', 'Calculation', 0);          
+          
+disp(abs(spatial(1)).^2);
+end

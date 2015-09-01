@@ -16,7 +16,10 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function [psi] = recon(c, d, e, Nx, Nt, tMax)
+function [A_0, t] = recon(Nx, Nt, tMax, peakTime)
+
+close all
+
 % RECON: 
 %           Reproduces the rogue wave from a specific simulation using some
 %           paramters c, d, e.
@@ -35,22 +38,20 @@ function [psi] = recon(c, d, e, Nx, Nt, tMax)
 
 % Calculations to determine minimum value of A_0
 t = linspace(0, tMax, Nt);                % Allocate time
-r = sqrt(3)/2;                            % Slope
-%c = 37.883;                              % Intercept
-%d = 0.5333;                              % Parameter
-%e = 1.86;
-%Nx = 128;                                % Number of fourier modes
-k = 1:Nx/2;                               % Wave number
-[tg, kg] = meshgrid(t, k);                % mesh t and k for 2D calculations
-A_k = exp(-kg*r.*sqrt(d+e*(tg-c/r).^2));  % A_k
-A_0 = sqrt(1 - 2*sum(A_k.^2));            % A_0
+[tg, kg] = meshgrid(t, 1:Nx/2);
 
-[~, ~, V] = find(real(A_0));              % Find where min A_0 occurs
-index = (real(A_0) == min(V));            % Index of minimum value                  
+q = 3/8;
+a = sqrt(8*q*(1-2*q));
+alpha = sqrt(2*q)./cosh(a*(tg-peakTime));
+alpha_2 = sqrt(2*q)./cosh(a*(t-peakTime));
+
+A_0 = 1 - ((2*(1-2*q)+1i*a*tanh(a*(t-peakTime)))./sqrt(1-alpha_2.^2));
+A_k = -(2*(1-2*q)+1i*a*tanh(a*(tg-peakTime)))./sqrt(1-alpha.^2).*((1-sqrt(1-alpha.^2))./alpha).^abs(kg);
 
 % Recreate the whole wave
 x = linspace(-pi, pi, 101);
 psi = zeros(length(t), length(x));        % Final result will be saved here
+
 A_k = [A_0; A_k];
 for m = 1:length(t)                       % Outer loop over time
     for xl = x                            % Second loop over space
@@ -70,7 +71,8 @@ for m = 1:length(t)                       % Outer loop over time
     end
     disp([m length(t)]);                  % Show progress                         
 end
-
+%psi = [psi; flipud(psi)];
+%t = [t t+tMax];
 % Plot surface
 figure
 surf(x,t,abs(psi).^2, 'EdgeColor', 'none')      % Plot
@@ -83,3 +85,7 @@ ylabel('t'); xlabel('x'); zlabel('|\psi|^2')    % Labels
 ab(psi, x, t, max(max(abs(psi).^2)), 3/8);      % Compare to 
 
 end
+
+% c =37.88
+% d = (log(3)/sqrt(3))^2
+% e = 0.19
