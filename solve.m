@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function nlse_func(dt, Nx, Tmax, Lx, V, psi_0, method, handles)
+function solve(dt, Nx, Tmax, Lx, V, psi_0, method, handles)
 
 hWaitBar = waitbar(0,'Preparing Solver');
 
@@ -108,7 +108,6 @@ densityPlot(PSI, x, t, dt, dx, 200, handles);
 fourierPlot(PSI, Nx, t, 6, handles);
 initialPlot(PSI(1, :), x, handles);
 close(hWaitBar)
-
 
 % Some special purpose functions
 maxima = regions(PSI, x, t);
