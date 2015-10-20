@@ -1,6 +1,6 @@
-function initialPlot(psi, x, handles)
+function initialPlot(psi, x, selectAxes)
 
-    axes(handles.axes1)
+    axes(selectAxes)
     
     plot(x, abs(psi).^2); 
 

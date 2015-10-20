@@ -104,9 +104,14 @@ end
 
 % Plot results
 waitbar(j/Nt, hWaitBar, 'Preparing Density Plot');
-densityPlot(PSI, x, t, dt, dx, 200, handles);
-fourierPlot(PSI, Nx, t, 6, handles);
-initialPlot(PSI(1, :), x, handles);
+densityPlot(PSI, x, t, dt, dx, 200, handles.axes2);    
+colormap('jet');
+PSI_k = 20*log10(abs(fft(PSI'))/Nx/Nx);
+max(max(PSI_k))
+min(min(PSI_k))
+densityPlot(fftshift(PSI_k,1)', k, t, dt, dx, 200, handles.axes3);  
+colormap('jet');
+initialPlot(PSI(1, :), x, handles.axes1);
 close(hWaitBar)
 
 % Some special purpose functions

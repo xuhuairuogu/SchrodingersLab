@@ -1,6 +1,6 @@
-function densityPlot(PSI, x, t, dt, dx, intr, handles)
+function densityPlot(PSI, x, t, dt, dx, intr, selectAxes)
 
-    axes(handles.axes2)
+    axes(selectAxes);
     
     surf(x(1:1:end), t(1:intr:end), abs(PSI(1:intr:end, 1:1:end)).^2, 'EdgeColor', 'none'); 
     ylim([0, max(t)+dt]) 

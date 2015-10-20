@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 16-Oct-2015 17:43:22
+% Last Modified by GUIDE v2.5 20-Oct-2015 23:50:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -223,7 +223,7 @@ function runButton_Callback(hObject, eventdata, handles)
         L = eval(handles.LEdit.String);
     else
         a = eval(handles.aEdit.String);
-        L = pi/sqrt(1-2*a);
+        L = pi/sqrt(1-2*a)*eval(handles.aLMultEdit.String);
     end
     
     if strcmp(handles.cubicEdit.Enable, 'on')
@@ -451,6 +451,29 @@ function orderBox_CreateFcn(hObject, eventdata, handles)
 % handles    empty - handles not created until after all CreateFcns called
 
 % Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function aLMultEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to aLMultEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of aLMultEdit as text
+%        str2double(get(hObject,'String')) returns contents of aLMultEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function aLMultEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to aLMultEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
