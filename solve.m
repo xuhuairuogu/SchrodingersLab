@@ -104,9 +104,9 @@ end
 
 % Plot results
 waitbar(j/Nt, hWaitBar, 'Preparing Density Plot');
-densityPlot(PSI, x, t, dt, dx, 200, handles.axes2);    
+densityPlot(abs(PSI).^2, x, t, dt, dx, 200, handles.axes2);    
 colormap('jet');
-PSI_k = 20*log10(abs(fft(PSI'))/Nx/Nx);
+PSI_k = log10(abs(fft(PSI'))/Nx/Nx);
 max(max(PSI_k))
 min(min(PSI_k))
 densityPlot(fftshift(PSI_k,1)', k, t, dt, dx, 200, handles.axes3);  
