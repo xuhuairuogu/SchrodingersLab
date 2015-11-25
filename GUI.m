@@ -238,18 +238,18 @@ function runButton_Callback(hObject, eventdata, handles)
         A1 = eval(handles.iParamEdit1.String);
         A0 = sqrt(1-2*A1^2);
         omega = 2*sqrt(1-2*a);
-        psi_0 = sprintf('%.16f+2*%.30f*cos(%.16f*x)', A0, A1, omega) ;
+        psi_0 = sprintf('@(x) %.16f+2*%.30f*cos(%.16f*x)', A0, A1, omega) ;
     elseif (psi0_selection == 2)
         s = eval(handles.iParamEdit1.String);
         n = eval(handles.iParamEdit2.String);
-        psi_0 = sprintf('exp(-x.^2/2/%.16f^2).*hermiteH(%.16f, x/%.16f)', s, n, s) ;
+        psi_0 = sprintf('@(x) exp(-x.^2/2/%.16f^2).*hermiteH(%.16f, x/%.16f)', s, n, s) ;
     elseif (psi0_selection == 3)
         s = eval(handles.iParamEdit1.String);
         n = eval(handles.iParamEdit2.String);
-        psi_0 = sprintf('exp(-x.^2/2/%.16f^2).*besselj(%.16f, x)', s, n) ;
+        psi_0 = sprintf('@(x) exp(-x.^2/2/%.16f^2).*besselj(%.16f, x)', s, n) ;
     elseif (psi0_selection == 4)
         a = eval(handles.iParamEdit1.String);
-        psi_0 = sprintf('exp(%.16f*x).*airy( x)', a) ;
+        psi_0 = sprintf('@(x) exp(%.16f*x).*airy( x)', a) ;
     end
     
     orderSelection = handles.orderBox.Value;
@@ -269,7 +269,7 @@ function runButton_Callback(hObject, eventdata, handles)
         method = 'T8';
     end
         
-    solve(dt, N, tf, L, V, psi_0, method, handles)
+    solve(dt, N, tf, L, V, str2func(psi_0), method, handles)
 
 function vOtherEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to vOtherEdit (see GCBO)

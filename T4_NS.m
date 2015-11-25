@@ -24,8 +24,8 @@ os = 1/(2-s);
 ft = os;
 bt = -s*os;
 
-psi = T2(psi, ft*dt, k2, gamma);
-psi = T2(psi, bt*dt, k2, gamma);
-psi = T2(psi, ft*dt, k2, gamma);
+psi = T2(psi, ft*dt, k2, gamma, x, absorption, Lx);
+psi = T2(psi, bt*dt, k2, gamma, x, absorption, Lx);
+psi = T2(psi, ft*dt, k2, gamma, x, absorption, Lx);
 
 end

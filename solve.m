@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function solve(dt, Nx, Tmax, Lx, V, psi_0, method, handles)
+function solve(dt, Nx, Tmax, Lx, V, psi_0, absorption, method, handles)
 
 hWaitBar = waitbar(0,'Preparing Solver');
 
@@ -24,31 +24,34 @@ Nt = Tmax/dt;                           % Number of temporal nodes
 dx = Lx/Nx;                             % Spatial step size
 x = (-Nx/2:1:Nx/2-1)'*dx;               % Spatial grid points
 t = 0:dt:Tmax;                          % Temporal grid points
-psi = eval(psi_0);                      % Find initial condition
+psi = psi_0(x);                         % Find initial condition
 k = 2*(-Nx/2:1:Nx/2-1)'*pi/Lx;          % Wave number
 k2 = k.^2;                              % Squares of wavenumbers
 PSI = zeros(length(t), length(x));      % Matrix to save whole simulatin
 PSI(1, :) = psi;                        % Save first step
+plot_step = 10;                        % plotting interval
 
 %E = energy(psi, k2, Nx, V);            % Initial energy
-waitbar(0, hWaitBar, 'Solving: 0%%');
+waitbar(0, hWaitBar, 'Solving: 0%');
 for j = 1:1:Nt                          % Start time evolution
     
-    if strcmp(method, 'T2')             % Second order
-        psi = T2(psi, dt, k2, V, x); 
+    if strcmp(method, 'T1')             % First order
+        psi = T1(psi, dt, k2, V, x, absorption, Lx); 
+    elseif strcmp(method, 'T2')             % Second order
+        psi = T2(psi, dt, k2, V, x, absorption, Lx); 
         
     elseif strcmp(method, 'T4')         % Fourth order
-        psi1 = T2(psi, dt/2, k2, V, x);   
-        psi1 = T2(psi1, dt/2, k2, V); 
+        psi1 = T2(psi, dt/2, k2, V, x, absorption, Lx);   
+        psi1 = T2(psi1, dt/2, k2, V, x, absorption, Lx); 
         psi1 = 4/3 * psi1;
 
-        psi2 = T2(psi, dt, k2, V); 
+        psi2 = T2(psi, dt, k2, V, x, absorption, Lx); 
         psi2 = -1/3*psi2;
 
         psi = psi1 + psi2;
         
     elseif strcmp(method, 'T4_NS')      % Fourth order no subtraction
-        psi = T4_NS(psi, dt, k2, V);
+        psi = T4_NS(psi, dt, k2, V, absorption, Lx);
         
     elseif strcmp(method, 'T6')         % Sixth order
         psi1 = T2(psi, dt/3, k2, V);   
@@ -104,12 +107,10 @@ end
 
 % Plot results
 waitbar(j/Nt, hWaitBar, 'Preparing Density Plot');
-densityPlot(abs(PSI).^2, x, t, dt, dx, 200, handles.axes2);    
+densityPlot(abs(PSI).^2, x, t, dt, dx, plot_step, handles.axes2);    
 colormap('jet');
 PSI_k = log10(abs(fft(PSI'))/Nx/Nx);
-max(max(PSI_k))
-min(min(PSI_k))
-densityPlot(fftshift(PSI_k,1)', k, t, dt, dx, 200, handles.axes3);  
+densityPlot(fftshift(PSI_k,1)', k, t, dt, dx, plot_step, handles.axes3);  
 colormap('jet');
 initialPlot(PSI(1, :), x, handles.axes1);
 close(hWaitBar)
