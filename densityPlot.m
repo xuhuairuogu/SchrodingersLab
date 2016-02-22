@@ -1,10 +1,8 @@
-function densityPlot(PSI, x, t, dt, dx, intr, selectAxes)
+function densityPlot(PSI, x, t, tIntr, xIntr, handle)
 
-    axes(selectAxes);
+    axes(handle);
     
-    surf(x(1:1:end), t(1:intr:end), PSI(1:intr:end, 1:1:end), 'EdgeColor', 'none'); 
-    ylim([0, max(t)+dt]) 
-    xlim([x(1) x(end)]) 
+    surf(x(1:xIntr:end), t(1:tIntr:end), PSI(1:tIntr:end, 1:xIntr:end), 'EdgeColor', 'none'); 
     colorbar('eastoutside') 
     ylabel('t'); xlabel('x'); zlabel('|\psi|^2'); 
     view([0 0 90]) 
@@ -30,8 +28,8 @@ function densityPlot(PSI, x, t, dt, dx, intr, selectAxes)
       'XColor'      , [.3 .3 .3]   , ...
       'YColor'      , [.3 .3 .3]   , ...
       'LineWidth'   , 1            , ...
-      'XLim'        , [0 max(t)+dt], ...
-      'XLim'        , [min(x) max(x)+dx]);
+      'XLim'        , [round(min(x)) round(max(x))]);
+       % 'YLim'        , [ceil(min(t)) ceil(max(t))], ...
   
       disp('To save in high quality use this command');
       disp('print -depsc2 -painters test3.eps');

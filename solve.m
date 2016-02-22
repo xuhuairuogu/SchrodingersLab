@@ -16,15 +16,15 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function solve(dt, Nx, Tmax, Lx, V, psi_0, absorption, method, handles)
+function [PSI] = solve(dt, Nx, Tmax, Lx, mult, V, psi_0, absorption, method, handles)
 
-hWaitBar = waitbar(0,'Preparing Solver');
+%hWaitBar = waitbar(0,'Preparing Solver');
 
 Nt = Tmax/dt;                           % Number of temporal nodes
 dx = Lx/Nx;                             % Spatial step size
 x = (-Nx/2:1:Nx/2-1)'*dx;               % Spatial grid points
 t = 0:dt:Tmax;                          % Temporal grid points
-psi = psi_0(x);                         % Find initial condition
+psi = psi_0;                         % Find initial condition
 k = 2*(-Nx/2:1:Nx/2-1)'*pi/Lx;          % Wave number
 k2 = k.^2;                              % Squares of wavenumbers
 PSI = zeros(length(t), length(x));      % Matrix to save whole simulatin
@@ -32,13 +32,13 @@ PSI(1, :) = psi;                        % Save first step
 plot_step = 10;                        % plotting interval
 
 %E = energy(psi, k2, Nx, V);            % Initial energy
-waitbar(0, hWaitBar, 'Solving: 0%');
+%waitbar(0, hWaitBar, 'Solving: 0%');
 for j = 1:1:Nt                          % Start time evolution
     
     if strcmp(method, 'T1')             % First order
         psi = T1(psi, dt, k2, V, x, absorption, Lx); 
     elseif strcmp(method, 'T2')             % Second order
-        psi = T2(psi, dt, k2, V, x, absorption, Lx); 
+        psi = T2(psi, dt, k2, V, x, mult, absorption, Lx); 
         
     elseif strcmp(method, 'T4')         % Fourth order
         psi1 = T2(psi, dt/2, k2, V, x, absorption, Lx);   
@@ -51,19 +51,19 @@ for j = 1:1:Nt                          % Start time evolution
         psi = psi1 + psi2;
         
     elseif strcmp(method, 'T4_NS')      % Fourth order no subtraction
-        psi = T4_NS(psi, dt, k2, V, absorption, Lx);
+        psi = T4_NS(psi, dt, k2, V, x, absorption, Lx);
         
     elseif strcmp(method, 'T6')         % Sixth order
-        psi1 = T2(psi, dt/3, k2, V);   
-        psi1 = T2(psi1, dt/3, k2, V); 
-        psi1 = T2(psi1, dt/3, k2, V);
+        psi1 = T2(psi, dt/3, k2, V, x, absorption, Lx);    
+        psi1 = T2(psi1, dt/3, k2, V, x, absorption, Lx);  
+        psi1 = T2(psi1, dt/3, k2, V, x, absorption, Lx); 
         psi1 = 81/40 * psi1;
 
-        psi2 = T2(psi, dt/2, k2, V); 
-        psi2 = T2(psi2, dt/2, k2, V);
+        psi2 = T2(psi, dt/2, k2, V, x, absorption, Lx); 
+        psi2 = T2(psi2, dt/2, k2, V, x, absorption, Lx); 
         psi2 = -16/15*psi2;
 
-        psi3 = T2(psi, dt, k2, V); 
+        psi3 = T2(psi, dt, k2, V, x, absorption, Lx); 
         psi3 = 1/24*psi3;
 
         psi = psi1 + psi2 + psi3;
@@ -100,23 +100,24 @@ for j = 1:1:Nt                          % Start time evolution
     end
         
     PSI(j+1, :) = psi;
-    if ~mod(j/Nt*100, 5)   
-        waitbar(j/Nt, hWaitBar, sprintf('Solving: %d%%', j/Nt*100));
-    end
+%     if ~mod(j/Nt*100, 5)   
+%         waitbar(j/Nt, hWaitBar, sprintf('Solving: %d%%', j/Nt*100));
+%     end
 end
 
 % Plot results
-waitbar(j/Nt, hWaitBar, 'Preparing Density Plot');
-densityPlot(abs(PSI).^2, x, t, dt, dx, plot_step, handles.axes2);    
+%waitbar(j/Nt, hWaitBar, 'Preparing Density Plot');
+densityPlot(abs(PSI).^2, x, t, ceil(Nt/1000), ceil(Nx/256), handles.axes2); colormap('jet');  
 colormap('jet');
-PSI_k = log10(abs(fft(PSI'))/Nx/Nx);
-densityPlot(fftshift(PSI_k,1)', k, t, dt, dx, plot_step, handles.axes3);  
-colormap('jet');
-initialPlot(PSI(1, :), x, handles.axes1);
-close(hWaitBar)
+PSI_k = log(abs(fft(PSI'))/Nx);
+fourierPlot(PSI_k', t, 7, mult, handles.axes3)
+%PSI_k = fftshift(log(abs(fft(PSI'))/Nx), 1);
+%densityPlot(PSI_k', k, t, Nt/1000, Nx/256, handles.axes3); colormap('jet'); 
+%initialPlot(PSI(1, :), x, handles.axes1);
+%close(hWaitBar)
 
 % Some special purpose functions
-maxima = regions(PSI, x, t);
+% maxima = regions(PSI, x, t);
 % b_plot(PSI, Nx, t, 6, maxima(1,1));
 % recon(Nx, 5000, max(t), maxima(1,1));
 % [~,~,shift] = ab(PSI, x, t, max(max(abs(psi).^2)), 3/8);      

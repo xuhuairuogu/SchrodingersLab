@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function [A_0, time] = fourierPlot(PSI, Nx, t, num, handles)
+function [] = fourierPlot(PSI_k, t_k, num, mult, handle)
 % FUNCTION: Plots analytical function of r, c, d, e vs actual data
 % INPUT:
 %       PSI: full spatiotemporal wave function
@@ -25,35 +25,35 @@ function [A_0, time] = fourierPlot(PSI, Nx, t, num, handles)
 %       num: number of elements to plot. 5 is recommended.
 % See the file recon for more info on the analytical fit.
 
-axes(handles.axes3)
+% CO = [   0         0    1.0000; %BLUE
+%          0    0.5000         0; %GREEN
+%     1.0000         0         0; %RED
+%     0.5843    0.3882    0.3882; %BROWN
+%     0.7500         0    0.7500; %VIOLET
+%     0.0784    0.1686    0.5490; %NAVY
+%     0.2500    0.2500    0.2500;];%?
 
-CO = [   0         0    1.0000; %BLUE
-         0    0.5000         0; %GREEN
-    1.0000         0         0; %RED
-    0.5843    0.3882    0.3882; %BROWN
-    0.7500         0    0.7500; %VIOLET
-    0.0784    0.1686    0.5490; %NAVY
-    0.2500    0.2500    0.2500;];%?
+% Prepare the actual data                                % Scaling down of number of points
+%PSI_k = abs(fft(PSI'))/Nx;                  % Absolute normalized fft
+axes(handle);
+data = PSI_k(:, 1:mult:end);          % Our data
 
-% Prepare the actual data
-J = 200;                                   % Scaling down of number of points
-PSI_k = abs(fft(PSI'))/Nx;                  % Absolute normalized fft
-data = log(PSI_k(1:num, 1:J:end));          % Our data
+CO = lines(num);
+LSO = {'-', '-.', '--'};
 
-hData = plot(t(1:J:end), data, 'o', 'MarkerSize', 6); grid on;
-
-set(hData                                , ...
-  'LineStyle'           , '-'       , ...
-  'Marker'              , 'none'          , ...
-  'MarkerSize'          , 6      );
-
-hXLabel = xlabel('t');
-hYLabel = ylabel('log(|A_k|)');
+for i = 1:num
+    hData{i} = plot(t_k, data(:, i), 'color', CO(i, :), 'LineStyle', LSO{floor(i/8)+1}); 
+    hold all;
+end
 
 for i=1:num
-    set(hData(i)                      , ...
-        'Color'   , CO(i, :) );
+    legendInfo{i} = sprintf('A_{%d}', mult*(i-1));
 end
+hLegend = legend(legendInfo);
+set(hLegend, 'Location', 'BestOutside');
+
+hXLabel = xlabel('t');
+hYLabel = ylabel('ln(|A_k|)');
 
 set( gca                       , ...
     'FontName'   , 'Helvetica' );
@@ -73,6 +73,7 @@ set(gca, ...
   'YGrid'       , 'on'         , ...
   'XColor'      , [.3 .3 .3]   , ...
   'YColor'      , [.3 .3 .3]   , ...
-  'LineWidth'   , 1                );
+  'LineWidth'   , 1            , ...
+  'YLim'        , [-24, 2]     );
 
 end

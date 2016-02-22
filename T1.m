@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function [psi] = T2(psi, dt, k2, V, x, mult, absorption, L)
+function [psi] = T1(psi, dt, k2, V, x, absorption, L)
 % T2:
 %   This function calculates one time step using a second order split step
 %   algorithm. 
@@ -29,13 +29,12 @@ function [psi] = T2(psi, dt, k2, V, x, mult, absorption, L)
 %       V:   potential
 
 % Compute absorbing BC, if needed.
-Nx = length(x);
 if absorption.useAbsorbingBC
     gamma_f = absorption.gamma(x, absorption.gamma0, absorption.alpha, L);
-    absp1 = (1-exp(-2*gamma_f*dt/2))./(2*gamma_f);
-    absp2 = gamma_f*dt/2;
+    absp1 = (1-exp(-2*gamma_f*dt))./(2*gamma_f);
+    absp2 = gamma_f*dt;
 else
-    absp1 = dt/2;
+    absp1 = dt;
     absp2 = 0;
 end
 
@@ -46,17 +45,4 @@ psi = fftshift(fft(psi));                % FFT
 psi = exp(-1i * dt * k2/2).*psi;         % Linear calculation %%%% CHANGE dt*2 to dt
 psi = ifft(fftshift(psi));               % Inverse FFT
 
-pot = V(psi, x);                         % Calculate potential
-psi = exp(-1i * pot .* absp1 - absp2).*psi;        % Nonlinear calculation %%% CHANGE 2/2 to dt/2
-
-% psi = fft(psi);                % FFT
-% for i = 2:Nx/2+1;
-%     if(mod(i-1, mult) ~= 0)
-%         psi(i) = 0;
-%         psi(Nx - i  + 2) = 0;
-%         %disp(['set ', num2str(i), ', ', num2str(Nx-i+2), ' to zero']);
-%     end
-% end
-% 
-% psi = ifft(psi);
 end

@@ -1,5 +1,5 @@
 function [suprema] = regions(PSI, x, t)
-[row,col] = find(abs(PSI).^2' >= 7);
+[row,col] = find(abs(PSI).^2' >= 7.2);
 results = zeros(length(row)+1, 3);
 for i = 1:length(row)
     results(i, :) = [t(col(i)) x(row(i)) abs(PSI(col(i), row(i))).^2];
