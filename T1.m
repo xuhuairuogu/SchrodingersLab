@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function [psi] = T1(psi, dt, k2, V, x, absorption, L)
+function [psi] = T1(psi, dt, k2, V, x)
 % T2:
 %   This function calculates one time step using a second order split step
 %   algorithm. 
@@ -28,18 +28,8 @@ function [psi] = T1(psi, dt, k2, V, x, absorption, L)
 %       k2:  square of wave numbers. Do not fft shift this.
 %       V:   potential
 
-% Compute absorbing BC, if needed.
-if absorption.useAbsorbingBC
-    gamma_f = absorption.gamma(x, absorption.gamma0, absorption.alpha, L);
-    absp1 = (1-exp(-2*gamma_f*dt))./(2*gamma_f);
-    absp2 = gamma_f*dt;
-else
-    absp1 = dt;
-    absp2 = 0;
-end
-
 pot = V(psi, x);                         % Calculate potential
-psi = exp(-1i * pot .* absp1 - absp2).*psi;        % Nonlinear calculation %%% CHANGE 2/2 to dt/2
+psi = exp(-1i * pot .* dt).*psi;         % Nonlinear calculation %%% CHANGE 2/2 to dt/2
 
 psi = fftshift(fft(psi));                % FFT
 psi = exp(-1i * dt * k2/2).*psi;         % Linear calculation %%%% CHANGE dt*2 to dt

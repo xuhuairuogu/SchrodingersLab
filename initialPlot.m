@@ -2,12 +2,17 @@ function initialPlot(psi, x, selectAxes)
 
     axes(selectAxes)
     
-    plot(x, abs(psi).^2); 
+    %plot(x, abs(psi).^2, 'LineWidth', 1.5); 
+    %hold all;
+    plot(x, real(psi), 'LineWidth', 1.5); 
+    %hold all;
+    %plot(x, imag(psi), 'LineWidth', 1.5); 
+    
 
     hXLabel = xlabel('x');
-    hYLabel = ylabel('|\psi|^2');
+    hYLabel = ylabel('\psi');
 
-    set( gca                       , ...
+    set(gca                       , ...
         'FontName'   , 'Helvetica' );
     set([hXLabel, hYLabel         ], ...
         'FontName'   , 'Helvetica');
@@ -26,4 +31,6 @@ function initialPlot(psi, x, selectAxes)
       'YColor'      , [.3 .3 .3]   , ...
       'LineWidth'   , 1            , ...
       'XLim'        , [min(x) max(x)]);
+  
+  %legend('|\psi||', '\psi_r', '\psi_i', 'Location', 'Best');
 end

@@ -35,6 +35,7 @@ function [] = fourierPlot(PSI_k, t_k, num, mult, handle)
 
 % Prepare the actual data                                % Scaling down of number of points
 %PSI_k = abs(fft(PSI'))/Nx;                  % Absolute normalized fft
+cla(handle)
 axes(handle);
 data = PSI_k(:, 1:mult:end);          % Our data
 
@@ -74,6 +75,7 @@ set(gca, ...
   'XColor'      , [.3 .3 .3]   , ...
   'YColor'      , [.3 .3 .3]   , ...
   'LineWidth'   , 1            , ...
-  'YLim'        , [-24, 2]     );
+  'YLim'        , [-10, 2]    ,...
+  'XLim'        , [min(t_k), ceil(max(t_k))]);
 
 end

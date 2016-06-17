@@ -16,7 +16,7 @@
 % You should have received a copy of the GNU General Public License
 % along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
 
-function psi = T6_NS(psi, dt, k2, gamma)
+function psi = T6_NS(psi, dt, k2, V, x, mult)
 
 s = 2^(1/5);
 os = 1/(2-s);
@@ -24,6 +24,6 @@ os = 1/(2-s);
 ft = os;
 bt = -s*os;
 
-psi = T4_NS(psi, ft*dt, k2, gamma);
-psi = T4_NS(psi, bt*dt, k2, gamma);
-psi = T4_NS(psi, ft*dt, k2, gamma);
+psi = T4_NS(psi, ft*dt, k2, V, x, mult);
+psi = T4_NS(psi, bt*dt, k2, V, x, mult);
+psi = T4_NS(psi, ft*dt, k2, V, x, mult);
