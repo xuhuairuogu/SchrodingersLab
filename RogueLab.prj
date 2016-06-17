@@ -16,12 +16,12 @@
     <param.description>Rogue Lab is a program based on the Matlab Runtime developed with the purpose of solving the nonlinear Schrodinger equation with cubic nonlinearity, with a focus on rogue wave solutions. It also incorporates a subroutine for computing the Darboux transformation.
 
 No documentation is currently available.</param.description>
-    <param.screenshot>${PROJECT_ROOT}\RogueLabSplash.png</param.screenshot>
+    <param.screenshot />
     <param.guid />
     <param.net.saved.interface />
     <param.installpath.string>\RogueLab\</param.installpath.string>
     <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
-    <param.logo>${PROJECT_ROOT}\RogueLabSplash.png</param.logo>
+    <param.logo />
     <param.install.notes />
     <param.intermediate>${PROJECT_ROOT}\RogueLab\for_testing</param.intermediate>
     <param.files.only>${PROJECT_ROOT}\RogueLab\for_redistribution_files_only</param.files.only>
@@ -47,9 +47,11 @@ No documentation is currently available.</param.description>
     <param.log.file />
     <unset>
       <param.version />
+      <param.screenshot />
       <param.guid />
       <param.net.saved.interface />
       <param.installpath.combo />
+      <param.logo />
       <param.intermediate />
       <param.files.only />
       <param.output />
