@@ -333,7 +333,7 @@ function psi0Listbox_Callback(hObject, ~, handles) %#ok<DEFNU>
         handles.iParam2.Visible = 'on';
         handles.iParamEdit2.Visible = 'on';
         handles.iParam2.String = 'T';
-        handles.iParamEdit2.String = '10';
+        handles.iParamEdit2.String = '-10';
         handles.intensityEdit.Visible = 'on';
         handles.intensityCheck.Visible = 'on';
         handles.iCheck1.Visible = 'on';
@@ -1147,10 +1147,11 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     handles.x_num = x;
     handles.t_num = t;
     guidata(hObject,handles)
-%     figure;
-%     h = axes();
-%     PSI_k = fftshift(log(abs(fft(PSI'))/Nx), 1);
-%     densityPlot(PSI_k.', x, t, Nt/1000, Nx/256, h); colormap('jet'); 
+    
+    %figure;
+    %h = axes();
+    %PSI_k = fftshift(log(abs(fft(PSI'))/Nx), 1);
+    %densityPlot(PSI_k.', x, t, Nt/1000, 1, h); colormap('jet'); 
     
     handles.SpectrumPubMode = 0;
     handles.IntensityPubMode = 0;
