@@ -7,7 +7,7 @@ function varargout = GUI(varargin)
 %      the existing singleton*.
 %
 %      GUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in GUI.M with the given input arguments.
+%      function 9.6694e-05 + 3.2231e-05inamed CALLBACK in GUI.M with the given input arguments.
 %
 %      GUI('Property','Value',...) creates a new GUI or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
@@ -56,10 +56,10 @@ function GUI_OpeningFcn(hObject, ~, handles, varargin)
 handles.output = hObject;
 
 order =  str2double(handles.iParamEdit1.String);        % Read order
-a = str2double(handles.aEdit.String);                   % Read parameter a
-L = pi/sqrt(1-2*a);                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-lambda = sqrt(8*a*(1-2*a));                             %#ok<NASGU> % Growth factor (used in shifts)
-Omega = 2*sqrt(1-2*a);                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)   
+a = eval(handles.aEdit.String);                   % Read parameter a
+L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)   
 xj = eval(handles.xjEdit.String);                       % Eval x-shift 
 tj = eval(handles.tjEdit.String);                       % Eval t-shift
 T = str2double(handles.iParamEdit2.String);             % Eval max time
@@ -343,14 +343,14 @@ function psi0Listbox_Callback(hObject, ~, handles) %#ok<DEFNU>
         handles.tjLabel.Visible = 'on';
         handles.xjEdit.Visible = 'on';
         handles.tjEdit.Visible = 'on';
-        a = str2double(handles.aEdit.String);
-        L = pi/sqrt(1-2*a);                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a*(1-2*a));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a);                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+        a = eval(handles.aEdit.String); 
+        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         
-        a = str2double(handles.aEdit.String);
+        a = eval(handles.aEdit.String); 
         order =  str2double(handles.iParamEdit1.String);
         T = str2double(handles.iParamEdit2.String);
         [PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);
@@ -431,10 +431,10 @@ function iParamEdit1_Callback(hObject, ~, handles) %#ok<DEFNU>
 selection=handles.psi0Listbox.Value;
 if (selection == 1)
         order =  str2double(handles.iParamEdit1.String);
-        a = str2double(handles.aEdit.String);
-        L = pi/sqrt(1-2*a);                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a*(1-2*a));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a);                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+        a = eval(handles.aEdit.String); 
+        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
@@ -462,10 +462,10 @@ function iParamEdit2_Callback(hObject, ~, handles) %#ok<DEFNU>
 selection=handles.psi0Listbox.Value;
 if (selection == 1)
         order =  str2double(handles.iParamEdit1.String);
-        a = str2double(handles.aEdit.String);
-        L = pi/sqrt(1-2*a);                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a*(1-2*a));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a);                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+        a = eval(handles.aEdit.String); 
+        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
@@ -617,10 +617,10 @@ function aEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
 selection=handles.psi0Listbox.Value;
 if (selection == 1)
         order =  str2double(handles.iParamEdit1.String);
-        a = str2double(handles.aEdit.String);
-        L = pi/sqrt(1-2*a);                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a*(1-2*a));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a);                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+        a = eval(handles.aEdit.String); 
+        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
@@ -717,10 +717,10 @@ function xjEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
 selection=handles.psi0Listbox.Value;
 if (selection == 1)
         order =  str2double(handles.iParamEdit1.String);
-        a = str2double(handles.aEdit.String);
-        L = pi/sqrt(1-2*a);                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a*(1-2*a));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a);                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+        a = eval(handles.aEdit.String); 
+        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
@@ -762,10 +762,10 @@ function tjEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
 selection=handles.psi0Listbox.Value;
 if (selection == 1)
         order =  str2double(handles.iParamEdit1.String);
-        a = str2double(handles.aEdit.String);
-        L = pi/sqrt(1-2*a);                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a*(1-2*a));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a);                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+        a = eval(handles.aEdit.String); 
+        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
@@ -993,7 +993,7 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     if strcmp(handles.LEdit.Enable, 'on')
         L = str2double(handles.LEdit.String);
     else
-        a = str2double(handles.aEdit.String);
+        a = eval(handles.aEdit.String); 
         L = pi/sqrt(1-2*a)*mult;
     end
     

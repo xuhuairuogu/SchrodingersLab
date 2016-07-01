@@ -1,14 +1,19 @@
 function [PSI, xo, to] = calcDarboux(n, a, Nx, Nt, tmax, xs, ts)
 
 %a = 0.5*(1-1/(nu*nu));                                          % Parameter a
+if length(a) == 1
+    for k = 1:n
+        a(k) = k^2*(a(1)-1/2)+1/2;
+    end
+end
 
-a1 = a;
-a2 = 4*a-3/2;
-a3 = 9*a - 4;
-a4 = 16*a - 15/2;
-a5 = 25*a - 12;
-l = [1i*sqrt(2*a1), 1i*sqrt(2*a2), 1i*sqrt(2*a3), 1i*sqrt(2*a4), 1i*sqrt(2*a5)];
-L = pi/sqrt(1-2*a);                                             % Periodic length
+%a1 = a;
+%a2 = 4*a-3/2;
+%a3 = 9*a - 4;
+%a4 = 16*a - 15/2;
+%a5 = 25*a - 12;
+l = 1i*sqrt(2*a);
+L = pi/sqrt(1-2*a(1));                                             % Periodic length
 kappa = 2*sqrt(1+l.^2);                                         % Principal wave number
 
 psi = cell(n, 1);                                               % container for all order waves
