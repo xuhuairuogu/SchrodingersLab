@@ -540,12 +540,6 @@ function analSwitch_Callback(~, ~, handles) %#ok<DEFNU>
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 h = allchild(handles.axes4);
-% disp(h.FaceLighting)
-% disp(h.AmbientStrength)
-% disp(h.DiffuseStrength) 
-% disp(h.SpecularStrength) 
-% disp(h.SpecularExponent)
-% disp(h.BackFaceLighting)
 if (size(h) == 1); % Density Plot mode
     axes(handles.axes4);
     colorbar off;
@@ -557,7 +551,7 @@ if (size(h) == 1); % Density Plot mode
     h.DiffuseStrength = 0.8;
     h.SpecularStrength = 0.5;
     h.SpecularExponent = 3;
-    h.BackFaceLighting = 'unlit';
+    h.BackFaceLighting = 'reverselit';
     grid off;
 else
     axes(handles.axes4);
@@ -580,7 +574,7 @@ function pushbutton4_Callback(~, ~, handles) %#ok<DEFNU>
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 h = allchild(handles.axes2);
-if (size(h) == 1); % Density Plot mode
+if (size(h) == 1); % Axes are in density plot mode
     axes(handles.axes2);
     colorbar off;
     view(-62,42)
@@ -591,7 +585,7 @@ if (size(h) == 1); % Density Plot mode
     h.DiffuseStrength = 0.8;
     h.SpecularStrength = 0.5;
     h.SpecularExponent = 3;
-    h.BackFaceLighting = 'unlit';
+    h.BackFaceLighting = 'reverselit';
     grid off;
 else
     axes(handles.axes2);
