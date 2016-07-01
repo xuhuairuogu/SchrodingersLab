@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 15-Jun-2016 20:48:01
+% Last Modified by GUIDE v2.5 30-Jun-2016 21:49:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -450,6 +450,9 @@ if (selection == 1)
         fourierPlot(PSI_k', t, 7, 1, handles.axes5);
 		axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
 		axes(handles.axes5); title('Analytical');
+        
+        handles.order = order;
+        guidata(hObject, handles);
 end
 
 function iParamEdit2_Callback(hObject, ~, handles) %#ok<DEFNU>
@@ -634,6 +637,11 @@ if (selection == 1)
         a = str2double(hObject.String);
         handles.intensityEdit.String = num2str(peakPredict(a, k)^2);
 end
+
+handles.a = a;
+guidata(hObject, handles);
+
+
 
 % --- Executes on button press in undockDT1.
 function undockDT1_Callback(~, ~, handles) %#ok<DEFNU>
@@ -1158,3 +1166,18 @@ function menuEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to menuEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function viewMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to viewMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function analParamView_Callback(hObject, eventdata, handles)
+% hObject    handle to analParamView (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+analProp;
