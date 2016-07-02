@@ -60,13 +60,15 @@ h = findobj('Tag','main_GUI');
 if ~isempty(h)
 % get handles struct from main GUI
 mainHandles = guidata(h);
-    if length(mainHandles.a) == 1
-        a(1) = mainHandles.a(1);
-        for k = 1:mainHandles.order
+    a_main = eval(mainHandles.aEdit.String);
+    order =  eval(mainHandles.iParamEdit1.String);
+    if length(a_main) == 1
+        a(1) = a_main(1);
+        for k = 1:order
             a(k) = k^2*(a(1)-1/2)+1/2;
         end
     else
-        a = mainHandles.a;
+        a = a_main;
     end
 end
 %handles.uitable1.Data = cell(mainHandles.order);

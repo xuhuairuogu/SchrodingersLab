@@ -1,19 +1,27 @@
-function [PSI, xo, to] = calcDarboux(n, a, Nx, Nt, tmax, xs, ts)
+function [PSI, xo, to] = calcDarboux(n, a, R, tmax, xs, ts, Nx, Nt, mode, Lk, mult)
 
-%a = 0.5*(1-1/(nu*nu));                                          % Parameter a
-if length(a) == 1
+if length(a) == 1 && R == 2; % This is the usual default mode
     for k = 1:n
         a(k) = k^2*(a(1)-1/2)+1/2;
     end
+elseif length(a) == 1 && R ~= 2;
+    if n > 2
+        uiwait(warndlg('Ratio not equal to 2 and order > 2. Feature not yet implemented')); 
+        return
+    end 
+    a2 = R^2*(a(1) - 0.5) + 0.5;
+    a = [a(1), a2];
 end
 
-%a1 = a;
-%a2 = 4*a-3/2;
-%a3 = 9*a - 4;
-%a4 = 16*a - 15/2;
-%a5 = 25*a - 12;
+[~, D] = rat(R);
+switch mode
+    case 'manual'
+        L = Lk;
+    case 'periodic'
+        L = mult*pi/sqrt(1-2*a(1));                                             % Periodic length
+end
+
 l = 1i*sqrt(2*a);
-L = pi/sqrt(1-2*a(1));                                             % Periodic length
 kappa = 2*sqrt(1+l.^2);                                         % Principal wave number
 
 psi = cell(n, 1);                                               % container for all order waves

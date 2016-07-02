@@ -22,7 +22,7 @@ function varargout = Preferences(varargin)
 
 % Edit the above text to modify the response to help Preferences
 
-% Last Modified by GUIDE v2.5 26-Mar-2016 16:22:31
+% Last Modified by GUIDE v2.5 01-Jul-2016 22:03:34
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -122,6 +122,25 @@ set(handles.axes1, ...
 % Make the GUI modal
 set(handles.figure1,'WindowStyle','modal')
 
+% Load preferences file and update values;
+if exist('preferences.mat', 'file') == 2
+    load preferences.mat
+    handles.NxEdit.String = num2str(pref.Nx);
+    handles.NtEdit.String = num2str(pref.Nt);
+
+    if strcmp(pref.Lmode, 'manual');
+        handles.LManualRadio.Value = 1;
+        LManualRadio_Callback(handles.LManualRadio, eventdata, handles);
+        handles.LEdit.String = num2str(pref.L);
+    else
+        handles.LPeriodicRadio.Value = 1;
+        LPeriodicRadio_Callback(handles.LPeriodicRadio, eventdata, handles);
+        handles.aLMultEdit.String = num2str(pref.aLMult);
+    end
+else
+    uiwait(warndlg('Warning: No RogueLab preferences file exists. Loading defaults. File will be created when you press OK on the preferences dialog.'));
+end
+
 % UIWAIT makes Preferences wait for user response (see UIRESUME)
 uiwait(handles.figure1);
 
@@ -144,7 +163,19 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.output = get(hObject,'String');
+pref.Nx = eval(handles.NxEdit.String);
+pref.Nt = eval(handles.NtEdit.String);
+if handles.LManualRadio.Value == 1;
+    pref.Lmode = 'manual';
+else
+    pref.Lmode = 'periodic';
+
+end
+
+pref.L = eval(handles.LEdit.String);
+pref.aLMult = eval(handles.aLMultEdit.String);
+
+save('preferences.mat', 'pref');   
 
 % Update handles structure
 guidata(hObject, handles);
@@ -204,3 +235,132 @@ end
 if isequal(get(hObject,'CurrentKey'),'return')
     uiresume(handles.figure1);
 end    
+
+
+
+function NxEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to NxEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of NxEdit as text
+%        str2double(get(hObject,'String')) returns contents of NxEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function NxEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to NxEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function NtEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to NtEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of NtEdit as text
+%        str2double(get(hObject,'String')) returns contents of NtEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function NtEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to NtEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function LEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to LEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of LEdit as text
+%        str2double(get(hObject,'String')) returns contents of LEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function LEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to LEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function aLMultEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to aLMultEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of aLMultEdit as text
+%        str2double(get(hObject,'String')) returns contents of aLMultEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function aLMultEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to aLMultEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in LManualRadio.
+function LManualRadio_Callback(hObject, eventdata, handles)
+% hObject    handle to LManualRadio (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of LManualRadio
+    set(handles.LEdit, 'Enable', 'on')
+    %set(handles.aEdit, 'Enable', 'off')
+    set(handles.aLMultEdit, 'Enable', 'off')
+
+
+% --- Executes on button press in LPeriodicRadio.
+function LPeriodicRadio_Callback(hObject, eventdata, handles)
+% hObject    handle to LPeriodicRadio (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of LPeriodicRadio
+    set(handles.LEdit, 'Enable', 'off')
+    %set(handles.aEdit, 'Enable', 'off')
+    set(handles.aLMultEdit, 'Enable', 'on')
+
+
+% --- Executes on button press in pushbutton3.
+function pushbutton3_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+button = questdlg('Are you sure you want to reset preferences to default?');
+switch button
+    case 'Yes'
+    delete preferences.mat;
+    uiwait(warndlg('Preferences reset to default. Close the preferences window and reopen it.'));
+end

@@ -7,7 +7,7 @@ function varargout = GUI(varargin)
 %      the existing singleton*.
 %
 %      GUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function 9.6694e-05 + 3.2231e-05inamed CALLBACK in GUI.M with the given input arguments.
+%      function named CALLBACK in GUI.M with the given input arguments.
 %
 %      GUI('Property','Value',...) creates a new GUI or raises the
 %      existing singleton*.  Starting from the left, property value pairs are
@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 30-Jun-2016 21:49:43
+% Last Modified by GUIDE v2.5 01-Jul-2016 20:54:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,6 +55,10 @@ function GUI_OpeningFcn(hObject, ~, handles, varargin)
 % Choose default command line output for GUI
 handles.output = hObject;
 
+% Load preferences
+load preferences.mat
+handles.pref = pref;
+
 order =  str2double(handles.iParamEdit1.String);        % Read order
 a = eval(handles.aEdit.String);                   % Read parameter a
 L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
@@ -63,7 +67,9 @@ Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundame
 xj = eval(handles.xjEdit.String);                       % Eval x-shift 
 tj = eval(handles.tjEdit.String);                       % Eval t-shift
 T = str2double(handles.iParamEdit2.String);             % Eval max time
-[PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);  % Prepare initial DT picture
+R = eval(handles.ratioEdit.String);
+pref = handles.pref;
+[PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % Prepare initial DT picture
 
 handles.PSI_anal = PSI;                                 % Save result to handles struct
 handles.x_anal = x;
@@ -161,7 +167,8 @@ function LRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 
 % Hint: get(hObject,'Value') returns toggle state of LRadioButton
     set(handles.LEdit, 'Enable', 'on')
-    set(handles.aEdit, 'Enable', 'off')
+    %set(handles.aEdit, 'Enable', 'off')
+    set(handles.aLMultEdit, 'Enable', 'off')
 
 
 % --- Executes on button press in aRadioButton.
@@ -172,7 +179,8 @@ function aRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 
 % Hint: get(hObject,'Value') returns toggle state of aRadioButton
     set(handles.LEdit, 'Enable', 'off')
-    set(handles.aEdit, 'Enable', 'on')
+    %set(handles.aEdit, 'Enable', 'on')
+    set(handles.aLMultEdit, 'Enable', 'on')
 
 % --- Executes during object creation, after setting all properties.
 function potEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
@@ -353,7 +361,9 @@ function psi0Listbox_Callback(hObject, ~, handles) %#ok<DEFNU>
         a = eval(handles.aEdit.String); 
         order =  str2double(handles.iParamEdit1.String);
         T = str2double(handles.iParamEdit2.String);
-        [PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);
+        R = eval(handles.ratioEdit.String);
+        pref = handles.pref;
+        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
         
         handles.PSI_anal = PSI;                                 % Save result to handles struct
         handles.x_anal = x;
@@ -438,7 +448,10 @@ if (selection == 1)
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
-        [PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);
+        R = eval(handles.ratioEdit.String);
+        pref = handles.pref;
+        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % FIX PLEASE
+        save('olympic.mat', 'PSI', 'x', 't');
         
         handles.PSI_anal = PSI;                                 % Save result to handles struct
         handles.x_anal = x;
@@ -472,7 +485,9 @@ if (selection == 1)
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
-        [PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);
+        R = eval(handles.ratioEdit.String);
+        pref = handles.pref;
+        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
         
         handles.PSI_anal = PSI;                                 % Save result to handles struct
         handles.x_anal = x;
@@ -621,7 +636,9 @@ if (selection == 1)
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
-        [PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);
+        R = eval(handles.ratioEdit.String);
+        pref = handles.pref;
+        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
         
         handles.PSI_anal = PSI;                                 % Save result to handles struct
         handles.x_anal = x;
@@ -726,7 +743,9 @@ if (selection == 1)
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
-        [PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);
+        R = eval(handles.ratioEdit.String);
+        pref = handles.pref;
+        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
         
         handles.PSI_anal = PSI;                                 % Save result to handles struct
         handles.x_anal = x;
@@ -771,7 +790,9 @@ if (selection == 1)
         xj = eval(handles.xjEdit.String);
         tj = eval(handles.tjEdit.String);
         T = str2double(handles.iParamEdit2.String);
-        [PSI, x, t] = calcDarboux(order, a, 256, 300, T, xj, tj);
+        R = eval(handles.ratioEdit.String);
+        pref = handles.pref;
+        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
         
         handles.PSI_anal = PSI;                                 % Save result to handles struct
         handles.x_anal = x;
@@ -834,11 +855,14 @@ end
 title('');
 
 % --------------------------------------------------------------------
-function menuPreferences_Callback(~, ~, ~) %#ok<DEFNU>
+function menuPreferences_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to menuPreferences (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 Preferences;
+load preferences.mat;
+handles.pref = pref;
+guidata(hObject, handles);
 
 % --- Executes during object creation, after setting all properties.
 function intensityEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
@@ -991,12 +1015,14 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     Tmax = str2double(handles.tfEdit.String);                  % Read Tmax from edit
     Nt = Tmax/dt;                                              % Calculate Nt
     mult = str2double(handles.aLMultEdit.String);              % Read mult from edit box
+    R = eval(handles.ratioEdit.String);
+    a = eval(handles.aEdit.String); 
     
     if strcmp(handles.LEdit.Enable, 'on')
         L = str2double(handles.LEdit.String);
     else
-        a = eval(handles.aEdit.String); 
-        L = pi/sqrt(1-2*a)*mult;
+        [~, D] = rat(R);
+        L = pi/sqrt(1-2*a)*mult*1;
     end
     
     xj = eval(handles.xjEdit.String);
@@ -1023,8 +1049,9 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     if (psi0_selection == 1)
         order =  str2double(handles.iParamEdit1.String);
         T = str2double(handles.iParamEdit2.String);
+        R = eval(handles.ratioEdit.String);
         Omega = 2*sqrt(1-2*a);
-        [psi_dt, x_dt, ~] = calcDarboux(order, a, Nx, 0, T, xj, tj);
+        [psi_dt, x_dt, ~] = calcDarboux(order, a, R, T, xj, tj, Nx, 0, 'periodic', 0, mult);
         fitP = genCoeff(x_dt, psi_dt, a, order, 1, handles.uipanel2);
         
         coeff = coeffvalues(fitP{1}) + 1i*coeffvalues(fitP{2});
@@ -1181,3 +1208,97 @@ function analParamView_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 analProp;
+
+
+
+function ratioEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to ratioEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of ratioEdit as text
+%        str2double(get(hObject,'String')) returns contents of ratioEdit as a double
+order =  str2double(handles.iParamEdit1.String);        % Read order
+a = eval(handles.aEdit.String);                   % Read parameter a
+L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
+lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
+Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)   
+xj = eval(handles.xjEdit.String);                       % Eval x-shift 
+tj = eval(handles.tjEdit.String);                       % Eval t-shift
+T = str2double(handles.iParamEdit2.String);             % Eval max time
+R = eval(handles.ratioEdit.String);
+pref = handles.pref;
+[PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % Prepare initial DT picture
+
+handles.PSI_anal = PSI;                                 % Save result to handles struct
+handles.x_anal = x;
+handles.t_anal = t;
+guidata(hObject, handles);
+
+densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);       % Plot density
+PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));             % Calculate spectrum
+fourierPlot(PSI_k', t, 7, 1, handles.axes5);               % Plot spectrum
+axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2)))); % Prepare titles
+axes(handles.axes5); title('Analytical');   % Prepare titles
+
+% Update handles structure
+guidata(hObject, handles);
+
+
+% --- Executes during object creation, after setting all properties.
+function ratioEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to ratioEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit22_Callback(hObject, eventdata, handles)
+% hObject    handle to edit22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit22 as text
+%        str2double(get(hObject,'String')) returns contents of edit22 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit22_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit22 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function edit23_Callback(hObject, eventdata, handles)
+% hObject    handle to edit23 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of edit23 as text
+%        str2double(get(hObject,'String')) returns contents of edit23 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function edit23_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit23 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
