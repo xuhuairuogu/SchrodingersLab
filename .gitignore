@@ -52,3 +52,7 @@ results
 diary
 RogueLab.prj
 testNewMethod.m
+*.png
+*.asv
+olympic.m
+spacing.txt
