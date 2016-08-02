@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 01-Jul-2016 20:54:13
+% Last Modified by GUIDE v2.5 01-Aug-2016 21:24:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -731,14 +731,6 @@ f = figure;
 leg = legend(handles.axes3);
 copyobj([leg, handles.axes3],f);
 title(' ');
-% if handles.SpectrumPubMode
-%     set(gcf,'color','w');
-%     f.Position = [488.2000  541.8000  560.0000  220.0000];
-%     set(gca, 'Position', [0.1    0.22    0.65    0.7]);
-% else
-%     set(gca, 'Position', [0.1300    0.1100    0.66    0.8150]);
-% end
-%ax.Position = [0.1300    0.1948    0.7750    0.7302];
 set(gca, 'Position', [0.1300    0.1100    0.66    0.8150]);
 
 function xjEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
@@ -1165,7 +1157,9 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     elseif orderSelection == 8
         method = 'T8M';
     end
-    [PSI, x, t] = solve(dt, Nx, Tmax, L, mult, V, psi_0, method);  
+    [PSI, x, t, k2] = solve(dt, Nx, Tmax, L, mult, V, psi_0, method);  
+    
+    handles.k2 = k2;
 
 %    initialPlot(PSI(1, :), x, handles.axes1);
     densityPlot(abs(PSI).^2, x, t, ceil(Nt/1000), ceil(Nx/256), handles.axes2);
@@ -1303,3 +1297,26 @@ function edit23_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in numEnergy.
+function numEnergy_Callback(hObject, eventdata, handles)
+% hObject    handle to numEnergy (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+g = str2double(handles.potEdit.String);
+Nx = str2double(handles.NEdit.String);
+dt = str2double(handles.dtEdit.String);
+[dE, E, ke, pe] = energy(handles.PSI_num, handles.t_num, handles.k2, Nx, g, dt);
+figure;
+plot(handles.t_num, dE, 'LineWidth', 1.5); title('dE'); title('Integrated Energy Error');
+xlabel('t'); ylabel('dE'); grid on;
+
+figure;
+plot(handles.t_num, E, 'LineWidth', 1.5); title('Energy');
+hold on;
+plot(handles.t_num, ke, 'LineWidth', 1.5);  
+hold on;
+plot(handles.t_num, pe, 'LineWidth', 1.5);
+legend('E', 'T', 'V', 'Location', 'Best');
+xlabel('t'); ylabel('E'); grid on;

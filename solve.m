@@ -1,4 +1,4 @@
-function [PSI, x, t] = solve(dt, Nx, Tmax, Lx, mult, V, psi_0, method)
+function [PSI, x, t, k2] = solve(dt, Nx, Tmax, Lx, mult, V, psi_0, method)
 % SOLVE: main function for RogueLab's nonlinear Schrodinger equation solver
 % INPUT:
 %       dt: temporal step
