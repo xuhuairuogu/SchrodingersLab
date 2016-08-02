@@ -11,11 +11,6 @@ mult = 1;
 V = @(psi, x) (-1*abs(psi).^2);          % Potential
 method = 'T2';                        % Algorithm to use, this means 4th order algorithm with multi-product integrators
 
-gamma0 = 20; % Other parameters for Absorbing BC
-alpha = 1;   % Other parameter for absorbing BC
-gamma = @(x, gamma_0, alpha, L) gamma_0*(sech(alpha*(x-L/2)).^2 + sech(alpha*(x+L/2)).^2);        % Absorbing boundary conditions function
-absorption = struct('useAbsorbingBC', 0, 'gamma', gamma, 'gamma0', gamma0, 'alpha', alpha);       %absorbing BC structure
-
 f1 = figure;
 h1 = axes();
 f2 = figure;

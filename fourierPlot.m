@@ -1,47 +1,22 @@
-% Copyright 2015, Omar Ashour.
-% This sourcecode is available from <https://github.com/oashour/HighNLSE/>
-%
-% This file is part of HighNLSE.
-% 
-% HighNLSE is free software: you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation, either version 3 of the License, or
-% (at your option) any later version.
-% 
-% HighNLSE is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
-% 
-% You should have received a copy of the GNU General Public License
-% along with HighNLSE.  If not, see <http://www.gnu.org/licenses/>.
-
 function [] = fourierPlot(PSI_k, t_k, num, mult, handle)
-% FUNCTION: Plots analytical function of r, c, d, e vs actual data
+% FourierPlot: Plots fourier modes of an AB/RW
 % INPUT:
-%       PSI: full spatiotemporal wave function
-%       Nx: Number of Fourier modes/spatial nodes
-%       t: time array
-%       num: number of elements to plot. 5 is recommended.
-% See the file recon for more info on the analytical fit.
+%       PSI_k: Fourior transform of the spatiotemporal WF.
+%       t_k: time array
+%       num: number of modes to plot.
+%       mult: when used with talbot carpets. Just keep at 1.
 
-% CO = [   0         0    1.0000; %BLUE
-%          0    0.5000         0; %GREEN
-%     1.0000         0         0; %RED
-%     0.5843    0.3882    0.3882; %BROWN
-%     0.7500         0    0.7500; %VIOLET
-%     0.0784    0.1686    0.5490; %NAVY
-%     0.2500    0.2500    0.2500;];%?
-
-% Prepare the actual data                                % Scaling down of number of points
-%PSI_k = abs(fft(PSI'))/Nx;                  % Absolute normalized fft
+% Set axes and extract data
 cla(handle)
 axes(handle);
 data = PSI_k(:, 1:mult:end);          % Our data
 
+% Plot
 CO = lines(num);
 LSO = {'-', '-.', '--'};
 
+hData = cell(1,num);
+legendInfo = cell(1,num);
 for i = 1:num
     hData{i} = plot(t_k, data(:, i), 'color', CO(i, :), 'LineStyle', LSO{floor(i/8)+1}); 
     hold all;

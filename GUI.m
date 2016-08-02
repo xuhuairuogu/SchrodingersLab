@@ -43,7 +43,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before GUI is made visible.
 function GUI_OpeningFcn(hObject, ~, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -56,14 +55,14 @@ function GUI_OpeningFcn(hObject, ~, handles, varargin)
 handles.output = hObject;
 
 % Load preferences
-load preferences.mat
-handles.pref = pref;
+load preferences.mat % This loads a matrix pref
+handles.pref = pref; %#ok<NODEF>
 
 order =  str2double(handles.iParamEdit1.String);        % Read order
-a = eval(handles.aEdit.String);                   % Read parameter a
-L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)   
+a = eval(handles.aEdit.String);                         % Read parameter a
+L = pi/sqrt(1-2*a(1));                                  %#ok<NASGU> % Read length L (will be used in shifts)    
+lambda = sqrt(8*a(1)*(1-2*a(1)));                       %#ok<NASGU> % Growth factor (used in shifts)
+Omega = 2*sqrt(1-2*a(1));                               %#ok<NASGU> % Fundamental wavenumber (used in shifts)   
 xj = eval(handles.xjEdit.String);                       % Eval x-shift 
 tj = eval(handles.tjEdit.String);                       % Eval t-shift
 T = str2double(handles.iParamEdit2.String);             % Eval max time
@@ -80,14 +79,13 @@ densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);       % Plot density
 PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));             % Calculate spectrum
 fourierPlot(PSI_k', t, 7, 1, handles.axes5);               % Plot spectrum
 axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2)))); % Prepare titles
-axes(handles.axes5); title('Analytical');   % Prepare titles
+axes(handles.axes5); title('Analytical');                  % Prepare titles
 
 % Update handles structure
 guidata(hObject, handles);
 
 % UIWAIT makes GUI wait for user response (see UIRESUME)
 % uiwait(handles.main_GUI);
-
 
 % --- Outputs from this function are returned to the command line.
 function varargout = GUI_OutputFcn(~, ~, handles) 
@@ -166,9 +164,8 @@ function LRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of LRadioButton
-    set(handles.LEdit, 'Enable', 'on')
-    %set(handles.aEdit, 'Enable', 'off')
-    set(handles.aLMultEdit, 'Enable', 'off')
+set(handles.LEdit, 'Enable', 'on')
+set(handles.aLMultEdit, 'Enable', 'off')
 
 
 % --- Executes on button press in aRadioButton.
@@ -178,9 +175,8 @@ function aRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of aRadioButton
-    set(handles.LEdit, 'Enable', 'off')
-    %set(handles.aEdit, 'Enable', 'on')
-    set(handles.aLMultEdit, 'Enable', 'on')
+set(handles.LEdit, 'Enable', 'off')
+set(handles.aLMultEdit, 'Enable', 'on')
 
 % --- Executes during object creation, after setting all properties.
 function potEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
@@ -206,7 +202,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on button press in cubicRadioButton.
 function cubicRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to cubicRadioButton (see GCBO)
@@ -214,10 +209,9 @@ function cubicRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of cubicRadioButton
-    set(handles.potEdit, 'Enable', 'on')
-    set(handles.parabolicEdit, 'Enable', 'off')
-    set(handles.vOtherEdit, 'Enable', 'off')
-
+set(handles.potEdit, 'Enable', 'on')
+set(handles.parabolicEdit, 'Enable', 'off')
+set(handles.vOtherEdit, 'Enable', 'off')
 
 % --- Executes on button press in parabolicRadioButton.
 function parabolicRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
@@ -226,9 +220,9 @@ function parabolicRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of parabolicRadioButton
-    set(handles.potEdit, 'Enable', 'off')
-    set(handles.vOtherEdit, 'Enable', 'off')
-    set(handles.parabolicEdit, 'Enable', 'on')
+set(handles.potEdit, 'Enable', 'off')
+set(handles.vOtherEdit, 'Enable', 'off')
+set(handles.parabolicEdit, 'Enable', 'on')
 
 % --- Executes during object creation, after setting all properties.
 function vOtherEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
@@ -242,7 +236,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes on button press in vOtherRadioButton.
 function vOtherRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to vOtherRadioButton (see GCBO)
@@ -250,10 +243,9 @@ function vOtherRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of vOtherRadioButton
-    set(handles.potEdit, 'Enable', 'off')
-    set(handles.vOtherEdit, 'Enable', 'on')
-    set(handles.parabolicEdit, 'Enable', 'off')
-
+set(handles.potEdit, 'Enable', 'off')
+set(handles.vOtherEdit, 'Enable', 'on')
+set(handles.parabolicEdit, 'Enable', 'off')
 
 % --- Executes during object creation, after setting all properties.
 function iLabel1_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
@@ -302,8 +294,9 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on selection change in psi0Listbox.
+% CALLBACK OF INITIAL CONDITION LISTBOX. 
+% This callback handles hiding or enabling entry boxes depending on
+% what type of IC is enabled.
 function psi0Listbox_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to psi0Listbox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -311,124 +304,143 @@ function psi0Listbox_Callback(hObject, ~, handles) %#ok<DEFNU>
 
 % Hints: contents = cellstr(get(hObject,'String')) returns psi0Listbox contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from psi0Listbox
-    selection=hObject.Value;
-   
-    if (selection ~= 1)
-        handles.xjLabel.Visible = 'off';
-        handles.tjLabel.Visible = 'off';
-        handles.xjEdit.Visible = 'off';
-        handles.tjEdit.Visible = 'off';
-        handles.intensityEdit.Visible = 'off';
-        handles.intensityCheck.Visible = 'off';
-        handles.iCheck1.Visible = 'off';
-        handles.decimalsEdit.Visible = 'off';
-    end
-    if (selection ~= 2)
-        handles.iParam1.Visible = 'on';
-        handles.iParamEdit1.Visible = 'on';
-        handles.xjEdit.Visible = 'off';
-        handles.tjEdit.Visible = 'off';
-        handles.intensityEdit.Visible = 'off';
-        handles.intensityCheck.Visible = 'off';
-    end
-    
-    
-    if (selection == 1)
-        handles.iLabel1.String = 'psi0=A0+\Sum_j 2*Aj*cos(j*w*x)';
-        handles.iLabel2.Visible = 'off';
-        handles.iParam1.String = 'Order';
-        handles.iParamEdit1.String = '2';
-        handles.iParam2.Visible = 'on';
-        handles.iParamEdit2.Visible = 'on';
-        handles.iParam2.String = 'T';
-        handles.iParamEdit2.String = '-10';
-        handles.intensityEdit.Visible = 'on';
-        handles.intensityCheck.Visible = 'on';
-        handles.iCheck1.Visible = 'on';
-        handles.decimalsEdit.Visible = 'on';
-        
-        handles.xjLabel.Visible = 'on';
-        handles.tjLabel.Visible = 'on';
-        handles.xjEdit.Visible = 'on';
-        handles.tjEdit.Visible = 'on';
-        a = eval(handles.aEdit.String); 
-        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-        xj = eval(handles.xjEdit.String);
-        tj = eval(handles.tjEdit.String);
-        
-        a = eval(handles.aEdit.String); 
-        order =  str2double(handles.iParamEdit1.String);
-        T = str2double(handles.iParamEdit2.String);
-        R = eval(handles.ratioEdit.String);
-        pref = handles.pref;
-        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
-        
-        handles.PSI_anal = PSI;                                 % Save result to handles struct
-        handles.x_anal = x;
-        handles.t_anal = t;
-        guidata(hObject, handles);
-        
-        densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
-        PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
-        fourierPlot(PSI_k.', t, 7, 1, handles.axes5);
-        axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
-        axes(handles.axes5); title('Analytical');
+selection=hObject.Value;
 
-    elseif (selection == 2)
-        handles.iLabel1.String = 'psi0=A0+2*A1*cos(w*x)';
-        handles.iParam1.Visible = 'off';
-        handles.iParamEdit1.Visible = 'off';
-        handles.iParam2.Visible = 'off';
-        handles.iParamEdit2.Visible = 'off';
-        handles.iCheck1.Visible = 'off';
-        handles.decimalsEdit.Visible = 'off';
-    
-    elseif (selection == 3)
-        handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)H_n(x/s)';
-        handles.iLabel2.String = 'H_n = nth order Hermite polynomial';
-        handles.iLabel3.Visible = 'off';
-        handles.iParam1.String = 's';
-        handles.iParam2.String = 'n';
-        handles.iParamEdit1.String = '5';
-        handles.iParamEdit2.String = '0';
-        handles.iParam2.Visible = 'on';
-        handles.iParamEdit2.Visible = 'on';
-        handles.iCheck1.Visible = 'off';
-        handles.decimalsEdit.Visible = 'off';
-        handles.iParam1.Visible = 'on';
-        handles.iParamEdit1.Visible = 'on';
-    elseif (selection == 4)
-        handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)J_n(x)';
-        handles.iLabel2.String = 'J_n = nth order Bessel polynomial';
-        handles.iLabel3.Visible = 'off';
-        handles.iParam1.String = 's';
-        handles.iParam2.String = 'n';
-        handles.iParamEdit1.String = '10';
-        handles.iParamEdit2.String = '0';
-        handles.iParam2.Visible = 'on';
-        handles.iParamEdit2.Visible = 'on';
-        handles.iCheck1.Visible = 'off';
-        handles.decimalsEdit.Visible = 'off';
-        handles.iParam1.Visible = 'on';
-        handles.iParamEdit1.Visible = 'on';
-    elseif (selection == 5)
-        handles.iLabel1.String = 'psi0=exp(a*x)*Ai(x)';
-        handles.iLabel2.String = 'Ai(x) = Airy function';
-        handles.iLabel3.Visible = 'off';
-        handles.iParam1.String = 'a';
-        handles.iParam2.String = 'n';
-        handles.iParamEdit1.String = '0.1';
-        handles.iParamEdit2.String = '0';
-        handles.iParam2.Visible = 'off';
-        handles.iParamEdit2.Visible = 'off';
-        handles.iCheck1.Visible = 'off';
-        handles.decimalsEdit.Visible = 'off';
-        handles.iParam1.Visible = 'on';
-        handles.iParamEdit1.Visible = 'on';
-    end
+if (selection ~= 1)
+    handles.xjLabel.Visible = 'off';
+    handles.tjLabel.Visible = 'off';
+    handles.xjEdit.Visible = 'off';
+    handles.tjEdit.Visible = 'off';
+    handles.intensityEdit.Visible = 'off';
+    handles.intensityCheck.Visible = 'off';
+    handles.iCheck1.Visible = 'off';
+    handles.decimalsEdit.Visible = 'off';
+    handles.ratioEdit.Visible = 'off';
+    handles.ratioLabel.Visible = 'off';
+    handles.ratioInfo.Visible = 'off';
+end
+if (selection ~= 2)
+    handles.iParam1.Visible = 'on';
+    handles.iParamEdit1.Visible = 'on';
+    handles.xjEdit.Visible = 'off';
+    handles.tjEdit.Visible = 'off';
+    handles.intensityEdit.Visible = 'off';
+    handles.intensityCheck.Visible = 'off';
+end
 
+
+if (selection == 1)
+    handles.iLabel1.String = 'psi0=A0+\Sum_j 2*Aj*cos(j*w*x)';
+    handles.iLabel2.Visible = 'off';
+    handles.iParam1.String = 'Order';
+    handles.iParamEdit1.String = '2';
+    handles.iParam2.Visible = 'on';
+    handles.iParamEdit2.Visible = 'on';
+    handles.iParam2.String = 'T';
+    handles.iParamEdit2.String = '-10';
+    handles.intensityEdit.Visible = 'on';
+    handles.intensityCheck.Visible = 'on';
+    handles.iCheck1.Visible = 'on';
+    handles.decimalsEdit.Visible = 'on';
+    handles.ratioEdit.Visible = 'on';
+    handles.ratioLabel.Visible = 'on';
+    handles.ratioInfo.Visible = 'on';
+
+    handles.xjLabel.Visible = 'on';
+    handles.tjLabel.Visible = 'on';
+    handles.xjEdit.Visible = 'on';
+    handles.tjEdit.Visible = 'on';
+    handles.aEdit.Visible = 'on';
+    handles.aLabel.Visible = 'on';
+    
+    % When this mode is selected, a new DT needs to be calculated
+    a = eval(handles.aEdit.String); 
+    L = pi/sqrt(1-2*a(1));                              %#ok<NASGU> % Read length L (will be used in shifts)    
+    lambda = sqrt(8*a(1)*(1-2*a(1)));                   %#ok<NASGU> % Growth factor (used in shifts)
+    Omega = 2*sqrt(1-2*a(1));                           %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+    xj = eval(handles.xjEdit.String);
+    tj = eval(handles.tjEdit.String);
+
+    order =  str2double(handles.iParamEdit1.String);
+    T = str2double(handles.iParamEdit2.String);
+    R = eval(handles.ratioEdit.String);
+    pref = handles.pref;
+    [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
+    
+    % Save result to handles struct for later analysis
+    handles.PSI_anal = PSI;                                 
+    handles.x_anal = x;
+    handles.t_anal = t;
+    guidata(hObject, handles);
+
+    densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
+    PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
+    fourierPlot(PSI_k.', t, 7, 1, handles.axes5);
+    axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
+    axes(handles.axes5); title('Analytical');
+
+elseif (selection == 2)
+    handles.iLabel1.String = 'psi0=A0+2*A1*cos(w*x)';
+    handles.iParam1.Visible = 'off';
+    handles.iParamEdit1.Visible = 'off';
+    handles.iParam2.Visible = 'off';
+    handles.iParamEdit2.Visible = 'off';
+    handles.iCheck1.Visible = 'off';
+    handles.decimalsEdit.Visible = 'off';
+    handles.aEdit.Visible = 'on';
+    handles.aLabel.Visible = 'on';
+
+elseif (selection == 3)
+    handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)H_n(x/s)';
+    handles.iLabel2.String = 'H_n = nth order Hermite polynomial';
+    handles.iLabel3.Visible = 'off';
+    handles.iParam1.String = 's';
+    handles.iParam2.String = 'n';
+    handles.iParamEdit1.String = '5';
+    handles.iParamEdit2.String = '0';
+    handles.iParam2.Visible = 'on';
+    handles.iParamEdit2.Visible = 'on';
+    handles.iCheck1.Visible = 'off';
+    handles.decimalsEdit.Visible = 'off';
+    handles.iParam1.Visible = 'on';
+    handles.iParamEdit1.Visible = 'on';
+    handles.aEdit.Visible = 'off';
+    handles.aLabel.Visible = 'off';
+    
+elseif (selection == 4)
+    handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)J_n(x)';
+    handles.iLabel2.String = 'J_n = nth order Bessel polynomial';
+    handles.iLabel3.Visible = 'off';
+    handles.iParam1.String = 's';
+    handles.iParam2.String = 'n';
+    handles.iParamEdit1.String = '10';
+    handles.iParamEdit2.String = '0';
+    handles.iParam2.Visible = 'on';
+    handles.iParamEdit2.Visible = 'on';
+    handles.iCheck1.Visible = 'off';
+    handles.decimalsEdit.Visible = 'off';
+    handles.iParam1.Visible = 'on';
+    handles.iParamEdit1.Visible = 'on';
+    handles.aEdit.Visible = 'off';
+    handles.aLabel.Visible = 'off';
+elseif (selection == 5)
+    
+    handles.iLabel1.String = 'psi0=exp(a*x)*Ai(x)';
+    handles.iLabel2.String = 'Ai(x) = Airy function';
+    handles.iLabel3.Visible = 'off';
+    handles.iParam1.String = 'a';
+    handles.iParam2.String = 'n';
+    handles.iParamEdit1.String = '0.1';
+    handles.iParamEdit2.String = '0';
+    handles.iParam2.Visible = 'off';
+    handles.iParamEdit2.Visible = 'off';
+    handles.iCheck1.Visible = 'off';
+    handles.decimalsEdit.Visible = 'off';
+    handles.iParam1.Visible = 'on';
+    handles.iParamEdit1.Visible = 'on';
+    handles.aEdit.Visible = 'off';
+    handles.aLabel.Visible = 'off';
+end
 
 function iParamEdit1_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to handles.iParamEdit1 (see GCBO)
@@ -537,6 +549,16 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
+function aLMultEdit_Callback(hObject, ~, ~) %#ok<DEFNU>
+% hObject    handle to aLMultEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 % --- Executes on button press in iCheck1.
 function iCheck1_Callback(hObject, ~, handles) %#ok<DEFNU>
@@ -549,8 +571,6 @@ else
     handles.decimalsEdit.Enable = 'off';
 end
     
-% Hint: get(hObject,'Value') returns toggle state of iCheck1
-
 
 % --- Executes on button press in analSwitch.
 function analSwitch_Callback(~, ~, handles) %#ok<DEFNU>
@@ -584,7 +604,6 @@ else
     h.SpecularExponent = 10;
     h.BackFaceLighting = 'reverselit';
 end
-
 
 % --- Executes on button press in pushbutton4.
 function pushbutton4_Callback(~, ~, handles) %#ok<DEFNU>
@@ -658,8 +677,6 @@ end
 handles.a = a;
 guidata(hObject, handles);
 
-
-
 % --- Executes on button press in undockDT1.
 function undockDT1_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to undockDT1 (see GCBO)
@@ -677,7 +694,6 @@ else
     set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
 end
 
-
 % --- Executes on button press in undockDT2.
 function undockDT2_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to undockDT2 (see GCBO)
@@ -688,7 +704,6 @@ leg = legend(handles.axes5);
 copyobj([leg, handles.axes5],f);
 %title(' ');
 set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
-
 
 % --- Executes on button press in undockNum1.
 function undockNum1_Callback(~, ~, handles) %#ok<DEFNU>
@@ -771,8 +786,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function tjEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to tjEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -830,7 +843,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
 % --- Executes during object creation, after setting all properties.
 function uitable1_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 % hObject    handle to uitable1 (see GCBO)
@@ -875,7 +887,6 @@ function intensityEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 function potMenu_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to potMenu (see GCBO)
@@ -964,7 +975,6 @@ function vidSettings_Callback(~, ~, ~) %#ok<DEFNU>
 % handles    structure with handles and user data (see GUIDATA)
 videoSettings
 
-
 % --- Executes on button press in numericalMaxima.
 function numericalMaxima_Callback(hObject, ~, handles)
 % hObject    handle to numericalMaxima (see GCBO)
@@ -994,7 +1004,6 @@ function uitable1_CellEditCallback(~, ~, ~) %#ok<DEFNU>
 %	Error: error string when failed to convert EditData to appropriate value for Data
 % handles    structure with handles and user data (see GUIDATA)
 
-
 % --- Executes when selected cell(s) is changed in uitable1.
 function uitable1_CellSelectionCallback(~, ~, ~) %#ok<DEFNU>
 % hObject    handle to uitable1 (see GCBO)
@@ -1022,7 +1031,7 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
         L = str2double(handles.LEdit.String);
     else
         [~, D] = rat(R);
-        L = pi/sqrt(1-2*a)*mult*1;
+        L = D*pi/sqrt(1-2*a)*mult*1;
     end
     
     xj = eval(handles.xjEdit.String);
@@ -1036,17 +1045,17 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     val = get(handles.potMenu,'Value');
     % Set current data to the selected data set.
     switch str{val};
-    case 'g*|psi|^2 (cubic)' % User selects peaks.
+    case 'g*|psi|^2 (cubic)' % Cubic NLSE
         g = str2double(handles.potEdit.String);
         V = @(psi, x) (g*abs(psi).^2);
-    case 'alpha*x^2 (parabolic)' % User selects membrane.
+    case 'alpha*x^2 (parabolic)' % Parabolic SE
         alpha = str2double(handles.potEdit.String);
         V = @(psi, x) 1/2*alpha*x.^2;
     end
     
     psi0_selection = handles.psi0Listbox.Value;
     
-    if (psi0_selection == 1)
+    if (psi0_selection == 1) % THIS SHOULD BE MOVED TO GEN COEFF!!!
         order =  str2double(handles.iParamEdit1.String);
         T = str2double(handles.iParamEdit2.String);
         R = eval(handles.ratioEdit.String);
@@ -1083,8 +1092,6 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
             end
             A = Ar + 1i*Ai;
         end   
-%         format longe
-%         disp(A.');
         
         A02 = 1;
         for i = 1:order
@@ -1126,8 +1133,6 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
         for i=1:length(A)
             psi_0 = psi_0 + 2*A(i)*cos(i*Omega*x);
         end
-%        norm = dx*(psi_0')*(psi_0)/L;
-%         disp(['Norm is: ', num2str(norm)]);
         handles.uitable1.Data = [A0; A];
     elseif (psi0_selection == 3)
         s = str2double(handles.iParamEdit1.String);
@@ -1144,19 +1149,21 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     
     orderSelection = handles.orderBox.Value;
     if orderSelection == 1
-        method = 'T2';
+        method = 'T1';
     elseif orderSelection == 2
-        method = 'T4_NS';
+        method = 'T2';
     elseif orderSelection == 3
-        method = 'T4';
+        method = 'T4S';
     elseif orderSelection == 4
-        method = 'T6_NS';
+        method = 'T4M';
     elseif orderSelection == 5
-        method = 'T6';
+        method = 'T6S';
     elseif orderSelection == 6
-        method = 'T8_NS';    
+        method = 'TM';
     elseif orderSelection == 7
-        method = 'T8';
+        method = 'T8S';    
+    elseif orderSelection == 8
+        method = 'T8M';
     end
     [PSI, x, t] = solve(dt, Nx, Tmax, L, mult, V, psi_0, method);  
 
@@ -1185,8 +1192,6 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     handles.SpectrumPubMode = 0;
     handles.IntensityPubMode = 0;
     guidata(hObject,handles)
-    
-
 
 % --------------------------------------------------------------------
 function menuEdit_Callback(hObject, eventdata, handles)
@@ -1257,8 +1262,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function edit22_Callback(hObject, eventdata, handles)
 % hObject    handle to edit22 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -1279,8 +1282,6 @@ function edit22_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function edit23_Callback(hObject, eventdata, handles)
 % hObject    handle to edit23 (see GCBO)
