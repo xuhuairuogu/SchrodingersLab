@@ -22,7 +22,7 @@ function varargout = GUI(varargin)
 
 % Edit the above text to modify the response to help GUI
 
-% Last Modified by GUIDE v2.5 01-Aug-2016 21:24:05
+% Last Modified by GUIDE v2.5 29-Aug-2016 06:15:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,36 +56,10 @@ handles.output = hObject;
 
 % Load preferences
 load preferences.mat % This loads a matrix pref
-handles.pref = pref; %#ok<NODEF>
-
-order =  str2double(handles.iParamEdit1.String);        % Read order
-a = eval(handles.aEdit.String);                         % Read parameter a
-L = pi/sqrt(1-2*a(1));                                  %#ok<NASGU> % Read length L (will be used in shifts)    
-lambda = sqrt(8*a(1)*(1-2*a(1)));                       %#ok<NASGU> % Growth factor (used in shifts)
-Omega = 2*sqrt(1-2*a(1));                               %#ok<NASGU> % Fundamental wavenumber (used in shifts)   
-xj = eval(handles.xjEdit.String);                       % Eval x-shift 
-tj = eval(handles.tjEdit.String);                       % Eval t-shift
-T = str2double(handles.iParamEdit2.String);             % Eval max time
-R = eval(handles.ratioEdit.String);
-pref = handles.pref;
-[PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % Prepare initial DT picture
-
-handles.PSI_anal = PSI;                                 % Save result to handles struct
-handles.x_anal = x;
-handles.t_anal = t;
-guidata(hObject, handles);
-
-densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);       % Plot density
-PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));             % Calculate spectrum
-fourierPlot(PSI_k', t, 7, 1, handles.axes5);               % Plot spectrum
-axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2)))); % Prepare titles
-axes(handles.axes5); title('Analytical');                  % Prepare titles
-
+handles.pref = pref; 
+%runDTButton_Callback(hObject, eventdata, handles);
 % Update handles structure
 guidata(hObject, handles);
-
-% UIWAIT makes GUI wait for user response (see UIRESUME)
-% uiwait(handles.main_GUI);
 
 % --- Outputs from this function are returned to the command line.
 function varargout = GUI_OutputFcn(~, ~, handles) 
@@ -345,39 +319,16 @@ if (selection == 1)
     handles.ratioEdit.Visible = 'on';
     handles.ratioLabel.Visible = 'on';
     handles.ratioInfo.Visible = 'on';
-
     handles.xjLabel.Visible = 'on';
     handles.tjLabel.Visible = 'on';
     handles.xjEdit.Visible = 'on';
     handles.tjEdit.Visible = 'on';
     handles.aEdit.Visible = 'on';
     handles.aLabel.Visible = 'on';
-    
-    % When this mode is selected, a new DT needs to be calculated
-    a = eval(handles.aEdit.String); 
-    L = pi/sqrt(1-2*a(1));                              %#ok<NASGU> % Read length L (will be used in shifts)    
-    lambda = sqrt(8*a(1)*(1-2*a(1)));                   %#ok<NASGU> % Growth factor (used in shifts)
-    Omega = 2*sqrt(1-2*a(1));                           %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-    xj = eval(handles.xjEdit.String);
-    tj = eval(handles.tjEdit.String);
-
-    order =  str2double(handles.iParamEdit1.String);
-    T = str2double(handles.iParamEdit2.String);
-    R = eval(handles.ratioEdit.String);
-    pref = handles.pref;
-    [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
-    
-    % Save result to handles struct for later analysis
-    handles.PSI_anal = PSI;                                 
-    handles.x_anal = x;
-    handles.t_anal = t;
-    guidata(hObject, handles);
-
-    densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
-    PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
-    fourierPlot(PSI_k.', t, 7, 1, handles.axes5);
-    axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
-    axes(handles.axes5); title('Analytical');
+    handles.gCNLabel.Visible = 'on';
+    handles.gCNEdit.Visible = 'on';
+    handles.seedLabel.Visible = 'on';
+    handles.seedMenu.Visible = 'on';
 
 elseif (selection == 2)
     handles.iLabel1.String = 'psi0=A0+2*A1*cos(w*x)';
@@ -389,7 +340,10 @@ elseif (selection == 2)
     handles.decimalsEdit.Visible = 'off';
     handles.aEdit.Visible = 'on';
     handles.aLabel.Visible = 'on';
-
+    handles.gCNLabel.Visible = 'off';
+    handles.gCNEdit.Visible = 'off';
+    handles.seedLabel.Visible = 'off';
+    handles.seedMenu.Visible = 'off';
 elseif (selection == 3)
     handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)H_n(x/s)';
     handles.iLabel2.String = 'H_n = nth order Hermite polynomial';
@@ -406,7 +360,10 @@ elseif (selection == 3)
     handles.iParamEdit1.Visible = 'on';
     handles.aEdit.Visible = 'off';
     handles.aLabel.Visible = 'off';
-    
+    handles.gCNLabel.Visible = 'off';
+    handles.gCNEdit.Visible = 'off';
+    handles.seedLabel.Visible = 'off';
+    handles.seedMenu.Visible = 'off';
 elseif (selection == 4)
     handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)J_n(x)';
     handles.iLabel2.String = 'J_n = nth order Bessel polynomial';
@@ -423,8 +380,11 @@ elseif (selection == 4)
     handles.iParamEdit1.Visible = 'on';
     handles.aEdit.Visible = 'off';
     handles.aLabel.Visible = 'off';
-elseif (selection == 5)
-    
+    handles.gCNLabel.Visible = 'off';
+    handles.gCNEdit.Visible = 'off';
+    handles.seedLabel.Visible = 'off';
+    handles.seedMenu.Visible = 'off';
+elseif (selection == 5) 
     handles.iLabel1.String = 'psi0=exp(a*x)*Ai(x)';
     handles.iLabel2.String = 'Ai(x) = Airy function';
     handles.iLabel3.Visible = 'off';
@@ -440,77 +400,10 @@ elseif (selection == 5)
     handles.iParamEdit1.Visible = 'on';
     handles.aEdit.Visible = 'off';
     handles.aLabel.Visible = 'off';
-end
-
-function iParamEdit1_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to handles.iParamEdit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of handles.iParamEdit1 as text
-%        str2double(get(hObject,'String')) returns contents of handles.iParamEdit1 as a double
-
-selection=handles.psi0Listbox.Value;
-if (selection == 1)
-        order =  str2double(handles.iParamEdit1.String);
-        a = eval(handles.aEdit.String); 
-        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-        xj = eval(handles.xjEdit.String);
-        tj = eval(handles.tjEdit.String);
-        T = str2double(handles.iParamEdit2.String);
-        R = eval(handles.ratioEdit.String);
-        pref = handles.pref;
-        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % FIX PLEASE
-        save('olympic.mat', 'PSI', 'x', 't');
-        
-        handles.PSI_anal = PSI;                                 % Save result to handles struct
-        handles.x_anal = x;
-        handles.t_anal = t;
-        guidata(hObject, handles);
-        
-        densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
-        PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
-        fourierPlot(PSI_k', t, 7, 1, handles.axes5);
-		axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
-		axes(handles.axes5); title('Analytical');
-        
-        handles.order = order;
-        guidata(hObject, handles);
-end
-
-function iParamEdit2_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to handles.iParamEdit2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of handles.iParamEdit2 as text
-%        str2double(get(hObject,'String')) returns contents of handles.iParamEdit2 as a double
-selection=handles.psi0Listbox.Value;
-if (selection == 1)
-        order =  str2double(handles.iParamEdit1.String);
-        a = eval(handles.aEdit.String); 
-        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-        xj = eval(handles.xjEdit.String);
-        tj = eval(handles.tjEdit.String);
-        T = str2double(handles.iParamEdit2.String);
-        R = eval(handles.ratioEdit.String);
-        pref = handles.pref;
-        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
-        
-        handles.PSI_anal = PSI;                                 % Save result to handles struct
-        handles.x_anal = x;
-        handles.t_anal = t;
-        guidata(hObject, handles);
-        
-        densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
-        PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
-        fourierPlot(PSI_k', t, 7, 1, handles.axes5);
-		axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
-		axes(handles.axes5); title('Analytical');
+    handles.gCNLabel.Visible = 'off';
+    handles.gCNEdit.Visible = 'off';
+    handles.seedLabel.Visible = 'off';
+    handles.seedMenu.Visible = 'off';
 end
 
 % --- Executes during object creation, after setting all properties.
@@ -570,111 +463,45 @@ if hObject.Value == 1
 else
     handles.decimalsEdit.Enable = 'off';
 end
-    
-
+ 
 % --- Executes on button press in analSwitch.
-function analSwitch_Callback(~, ~, handles) %#ok<DEFNU>
+function analSwitch_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to analSwitch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-h = allchild(handles.axes4);
-if (size(h) == 1); % Density Plot mode
-    axes(handles.axes4);
-    colorbar off;
-    view(-62,42)
-    shading interp
-    lightangle(-40,50);
-    h.FaceLighting = 'gouraud';
-    h.AmbientStrength = 0.3;
-    h.DiffuseStrength = 0.8;
-    h.SpecularStrength = 0.5;
-    h.SpecularExponent = 3;
-    h.BackFaceLighting = 'reverselit';
-    grid off;
+pref = handles.pref;
+PSI = handles.PSI_anal;
+x = handles.x_anal;
+t = handles.t_anal;
+if strcmp(handles.analPlotMode, 'density'); % Axes are in density plot mode
+    nlsePlot(abs(PSI).^pref.pwr, x, t, 1, 1, handles.analRealAxes, '3D');
+    handles.analPlotMode = '3D';
 else
-    axes(handles.axes4);
-    colorbar;
-    delete(h(1));
-    h = h(2);
-    view([0,0,90])
-    h.FaceLighting = 'flat';
-    h.AmbientStrength = 0.3;
-    h.DiffuseStrength = 0.6;
-    h.SpecularStrength = 0.9;
-    h.SpecularExponent = 10;
-    h.BackFaceLighting = 'reverselit';
+    nlsePlot(abs(PSI).^pref.pwr, x, t, 1, 1, handles.analRealAxes, 'density');
+    handles.analPlotMode = 'density';
 end
+title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
+guidata(hObject, handles);
 
-% --- Executes on button press in pushbutton4.
-function pushbutton4_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to pushbutton4 (see GCBO)
+% --- Executes on button press in numSwitch.
+function numSwitch_Callback(hObject, ~, handles) %#ok<DEFNU>
+% hObject    handle to numSwitch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-h = allchild(handles.axes2);
-if (size(h) == 1); % Axes are in density plot mode
-    axes(handles.axes2);
-    colorbar off;
-    view(-62,42)
-    shading interp
-    lightangle(-40,50);
-    h.FaceLighting = 'gouraud';
-    h.AmbientStrength = 0.3;
-    h.DiffuseStrength = 0.8;
-    h.SpecularStrength = 0.5;
-    h.SpecularExponent = 3;
-    h.BackFaceLighting = 'reverselit';
-    grid off;
+pref = handles.pref;
+PSI = handles.PSI_num;
+x = handles.x_num;
+t = handles.t_num;
+Nx = length(x);
+Nt = length(t);
+if strcmp(handles.numPlotMode, 'density'); % Axes are in density plot mode
+    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/1000), ceil(Nx/256), handles.numRealAxes, '3D');
+    handles.numPlotMode = '3D';
 else
-    axes(handles.axes2);
-    colorbar;
-    delete(h(1));
-    h = h(2);
-    view([0,0,90])
-    h.FaceLighting = 'flat';
-    h.AmbientStrength = 0.3;
-    h.DiffuseStrength = 0.6;
-    h.SpecularStrength = 0.9;
-    h.SpecularExponent = 10;
-    h.BackFaceLighting = 'reverselit';
+    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/1000), ceil(Nx/256), handles.numRealAxes, 'density');
+    handles.numPlotMode = 'density';
 end
-
-function aEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to aEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of aEdit as text
-%        str2double(get(hObject,'String')) returns contents of aEdit as a double
-selection=handles.psi0Listbox.Value;
-if (selection == 1)
-        order =  str2double(handles.iParamEdit1.String);
-        a = eval(handles.aEdit.String); 
-        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-        xj = eval(handles.xjEdit.String);
-        tj = eval(handles.tjEdit.String);
-        T = str2double(handles.iParamEdit2.String);
-        R = eval(handles.ratioEdit.String);
-        pref = handles.pref;
-        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
-        
-        handles.PSI_anal = PSI;                                 % Save result to handles struct
-        handles.x_anal = x;
-        handles.t_anal = t;
-        guidata(hObject, handles);
-        
-        densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
-        PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
-        fourierPlot(PSI_k', t, 7, 1, handles.axes5);
-		axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
-		axes(handles.axes5); title('Analytical');
-        k = str2double(handles.iParamEdit1.String);
-        a = str2double(hObject.String);
-        handles.intensityEdit.String = num2str(peakPredict(a, k)^2);
-end
-
-handles.a = a;
+title(sprintf('Numerical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
 guidata(hObject, handles);
 
 % --- Executes on button press in undockDT1.
@@ -683,8 +510,8 @@ function undockDT1_Callback(~, ~, handles) %#ok<DEFNU>
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 f = figure;
-h = allchild(handles.axes4);
-copyobj(handles.axes4,f); colormap('jet'); colorbar;
+h = allchild(handles.analRealAxes);
+copyobj(handles.analRealAxes,f); colormap('jet'); colorbar;
 %title(' ');
 if (size(h) == 1); % Density Plot mode
     colorbar
@@ -700,9 +527,13 @@ function undockDT2_Callback(~, ~, handles) %#ok<DEFNU>
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 f = figure;
-leg = legend(handles.axes5);
-copyobj([leg, handles.axes5],f);
-%title(' ');
+leg = legend(handles.analInverseAxes);
+if ~isempty(leg)
+    copyobj([leg, handles.analInverseAxes],f);
+else
+    copyobj(handles.analInverseAxes,f);
+    colorbar; colormap('jet');
+end
 set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
 
 % --- Executes on button press in undockNum1.
@@ -711,8 +542,8 @@ function undockNum1_Callback(~, ~, handles) %#ok<DEFNU>
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 f = figure;
-h = allchild(handles.axes2);
-copyobj(handles.axes2,f); colormap('jet'); colorbar;
+h = allchild(handles.numRealAxes);
+copyobj(handles.numRealAxes,f); colormap('jet'); colorbar;
 %title(' ');
 if (size(h) == 1); % Density Plot mode
     colorbar
@@ -728,43 +559,14 @@ function undockNum2_Callback(~, ~, handles) %#ok<DEFNU>
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 f = figure;
-leg = legend(handles.axes3);
-copyobj([leg, handles.axes3],f);
-title(' ');
-set(gca, 'Position', [0.1300    0.1100    0.66    0.8150]);
-
-function xjEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to xjEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of xjEdit as text
-%        str2double(get(hObject,'String')) returns contents of xjEdit as a double
-selection=handles.psi0Listbox.Value;
-if (selection == 1)
-        order =  str2double(handles.iParamEdit1.String);
-        a = eval(handles.aEdit.String); 
-        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-        xj = eval(handles.xjEdit.String);
-        tj = eval(handles.tjEdit.String);
-        T = str2double(handles.iParamEdit2.String);
-        R = eval(handles.ratioEdit.String);
-        pref = handles.pref;
-        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
-        
-        handles.PSI_anal = PSI;                                 % Save result to handles struct
-        handles.x_anal = x;
-        handles.t_anal = t;
-        guidata(hObject, handles);
-        
-        densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
-        PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
-        fourierPlot(PSI_k', t, 7, 1, handles.axes5);
-		axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
-		axes(handles.axes5); title('Analytical');
+leg = legend(handles.numInverseAxes);
+if ~isempty(leg)
+    copyobj([leg, handles.numInverseAxes],f);
+else
+    copyobj(handles.analInverseAxes,f);
+    colorbar; colormap('jet');
 end
+set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
 
 % --- Executes during object creation, after setting all properties.
 function xjEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
@@ -776,39 +578,6 @@ function xjEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
 %       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
-end
-
-function tjEdit_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to tjEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of tjEdit as text
-%        str2double(get(hObject,'String')) returns contents of tjEdit as a double
-selection=handles.psi0Listbox.Value;
-if (selection == 1)
-        order =  str2double(handles.iParamEdit1.String);
-        a = eval(handles.aEdit.String); 
-        L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-        lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-        Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-        xj = eval(handles.xjEdit.String);
-        tj = eval(handles.tjEdit.String);
-        T = str2double(handles.iParamEdit2.String);
-        R = eval(handles.ratioEdit.String);
-        pref = handles.pref;
-        [PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);
-        
-        handles.PSI_anal = PSI;                                 % Save result to handles struct
-        handles.x_anal = x;
-        handles.t_anal = t;
-        guidata(hObject, handles);
-        
-        densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);
-        PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));
-        fourierPlot(PSI_k', t, 7, 1, handles.axes5);
-		axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2))));
-		axes(handles.axes5); title('Analytical');
 end
 
 % --- Executes during object creation, after setting all properties.
@@ -848,7 +617,7 @@ function pubSizeButton_Callback(~, ~, handles) %#ok<DEFNU>
 % hObject    handle to pubSizeButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-ax = handles.axes2;
+ax = handles.numRealAxes;
 axes(ax);
 maxY = ax.YLim(2);
 ylim([maxY/2-2, maxY/2+2]);
@@ -914,7 +683,7 @@ function pushbutton11_Callback(hObject, ~, handles) %#ok<DEFNU>
 % hObject    handle to pushbutton11 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-ax = handles.axes3;
+ax = handles.numInverseAxes;
 axes(ax);
 h = allchild(ax);
 if handles.SpectrumPubMode
@@ -985,208 +754,6 @@ handles.maximaType = 2;         % This indicates function should use DT data to 
 guidata(hObject, handles);
 maximaDisplay;
 
-% --- Executes when entered data in editable cell(s) in uitable1.
-function uitable1_CellEditCallback(~, ~, ~) %#ok<DEFNU>
-% hObject    handle to uitable1 (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
-%	Indices: row and column indices of the cell(s) edited
-%	PreviousData: previous data for the cell(s) edited
-%	EditData: string(s) entered by the user
-%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
-%	Error: error string when failed to convert EditData to appropriate value for Data
-% handles    structure with handles and user data (see GUIDATA)
-
-% --- Executes when selected cell(s) is changed in uitable1.
-function uitable1_CellSelectionCallback(~, ~, ~) %#ok<DEFNU>
-% hObject    handle to uitable1 (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
-%	Indices: row and column indices of the cell(s) currently selecteds
-% handles    structure with handles and user data (see GUIDATA)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% RUN BUTTON CALL BACK
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% --- Executes on button press in runButton.
-function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    han    5dle to runButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    dt = str2double(handles.dtEdit.String);                    % Read dt from edit
-    Nx =  str2double(handles.NEdit.String);                    % read Nx from edit
-    Tmax = str2double(handles.tfEdit.String);                  % Read Tmax from edit
-    Nt = Tmax/dt;                                              % Calculate Nt
-    mult = str2double(handles.aLMultEdit.String);              % Read mult from edit box
-    R = eval(handles.ratioEdit.String);
-    a = eval(handles.aEdit.String); 
-    
-    if strcmp(handles.LEdit.Enable, 'on')
-        L = str2double(handles.LEdit.String);
-    else
-        [~, D] = rat(R);
-        L = D*pi/sqrt(1-2*a)*mult*1;
-    end
-    
-    xj = eval(handles.xjEdit.String);
-    tj = eval(handles.tjEdit.String);
-    
-    dx = L/Nx;                             % Spatial step size
-    x = (-Nx/2:1:Nx/2-1)'*dx;
-    
-    % Determine the selected data set.
-    str = get(handles.potMenu, 'String');
-    val = get(handles.potMenu,'Value');
-    % Set current data to the selected data set.
-    switch str{val};
-    case 'g*|psi|^2 (cubic)' % Cubic NLSE
-        g = str2double(handles.potEdit.String);
-        V = @(psi, x) (g*abs(psi).^2);
-    case 'alpha*x^2 (parabolic)' % Parabolic SE
-        alpha = str2double(handles.potEdit.String);
-        V = @(psi, x) 1/2*alpha*x.^2;
-    end
-    
-    psi0_selection = handles.psi0Listbox.Value;
-    
-    if (psi0_selection == 1) % THIS SHOULD BE MOVED TO GEN COEFF!!!
-        order =  str2double(handles.iParamEdit1.String);
-        T = str2double(handles.iParamEdit2.String);
-        R = eval(handles.ratioEdit.String);
-        Omega = 2*sqrt(1-2*a);
-        [psi_dt, x_dt, ~] = calcDarboux(order, a, R, T, xj, tj, Nx, 0, 'periodic', 0, mult);
-        fitP = genCoeff(x_dt, psi_dt, a, order, 1, handles.uipanel2);
-        
-        coeff = coeffvalues(fitP{1}) + 1i*coeffvalues(fitP{2});
-        A = abs(coeff(2:end));          
-                            
-        phi_0 = angle(coeff(1));
-        phi = zeros(1,order);
-        for i=1:order
-            phi(i) = angle(coeff(i+1));
-            A(i) = A(i)*exp(1i*(phi(i) - phi_0));
-        end
-        
-        if handles.iCheck1.Value == 1
-            d = str2double(handles.decimalsEdit.String);
-            Dr = d - ceil(log10(abs(real(A))));
-            Di = d - ceil(log10(abs(imag(A))));
-            D = zeros(1, order);
-            for i=1:order
-                if Dr > Di
-                    D(i) = Di(i);
-                else
-                    D(i) = Dr(i);
-                end
-            end
-            Ar = zeros(1, order); Ai = zeros(1, order);
-            for i=1:order
-                Ar(i) = round(real(A(i)), D(i));
-                Ai(i) = round(imag(A(i)), D(i));
-            end
-            A = Ar + 1i*Ai;
-        end   
-        
-        A02 = 1;
-        for i = 1:order
-            A02 = A02 - 2*abs(A(i))^2;
-        end
-        A0 = sqrt(A02);
-
-        psi_0 = A0;
-        for i=1:order
-            psi_0 = psi_0 + 2*A(i)*cos(i*Omega*x);
-        end
-%         norm = dx*(psi_0')*(psi_0)/L;
-%         disp(['Norm is: ', num2str(norm)]);
-        handles.uitable1.Data = [A0, A].';
-        
-    elseif (psi0_selection == 2)
-        
-        A = handles.uitable1.Data;
-        if iscell(A)
-            for i = 1:length(A)
-                if isempty(A{i})
-                    B(i) = 0;
-                else
-                    B(i) = A{i};
-                end
-            end
-            A = B.';
-        end
-        A = A(2:end);
-        
-        A02 = 1;
-        for i = 1:length(A)
-            A02 = A02 - 2*abs(A(i))^2;
-        end
-        A0 = sqrt(A02);
-        
-        Omega = 2*sqrt(1-2*a);
-        psi_0 = A0;
-        for i=1:length(A)
-            psi_0 = psi_0 + 2*A(i)*cos(i*Omega*x);
-        end
-        handles.uitable1.Data = [A0; A];
-    elseif (psi0_selection == 3)
-        s = str2double(handles.iParamEdit1.String);
-        n = str2double(handles.iParamEdit2.String);
-        psi_0 = exp(-x.^2/2/s^2).*hermiteH(n, x/s);
-    elseif (psi0_selection == 4)
-        s = str2double(handles.iParamEdit1.String);
-        n = str2double(handles.iParamEdit2.String);
-        psi_0 = exp(-x.^2/2/s^2).*besselj(n, x);
-    elseif (psi0_selection == 5)
-        a = str2double(handles.iParamEdit1.String);
-        psi_0 = exp(a*x).*airy(x);
-    end
-    
-    orderSelection = handles.orderBox.Value;
-    if orderSelection == 1
-        method = 'T1';
-    elseif orderSelection == 2
-        method = 'T2';
-    elseif orderSelection == 3
-        method = 'T4S';
-    elseif orderSelection == 4
-        method = 'T4M';
-    elseif orderSelection == 5
-        method = 'T6S';
-    elseif orderSelection == 6
-        method = 'TM';
-    elseif orderSelection == 7
-        method = 'T8S';    
-    elseif orderSelection == 8
-        method = 'T8M';
-    end
-    [PSI, x, t, k2] = solve(dt, Nx, Tmax, L, mult, V, psi_0, method);  
-    
-    handles.k2 = k2;
-
-%    initialPlot(PSI(1, :), x, handles.axes1);
-    densityPlot(abs(PSI).^2, x, t, ceil(Nt/1000), ceil(Nx/256), handles.axes2);
-    PSI_k = log(abs(fft(PSI.'))/Nx);
-    cla(handles.axes3);
-    fourierPlot(PSI_k', t, 7, 1, handles.axes3);
-
-    % Some special purpose functions
-    % [~,~,shift] = ab(PSI, x, t, max(max(abs(psi).^2)), 3/8);      
-    % energy(PSI, t, k2, Nx, V, dt);
-    
-    axes(handles.axes2); title(sprintf('Numerical. Max = %.3f', max(max(abs(PSI).^2))));
-    axes(handles.axes3); title('Numerical'); 
-    handles.PSI_num = PSI;           % Save result to handles structure.
-    handles.x_num = x;
-    handles.t_num = t;
-    guidata(hObject,handles)
-    
-    %figure;
-    %h = axes();
-    %PSI_k = fftshift(log(abs(fft(PSI'))/Nx), 1);
-    %densityPlot(PSI_k.', x, t, Nt/1000, 1, h); colormap('jet'); 
-    
-    handles.SpectrumPubMode = 0;
-    handles.IntensityPubMode = 0;
-    guidata(hObject,handles)
-
 % --------------------------------------------------------------------
 function menuEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to menuEdit (see GCBO)
@@ -1207,41 +774,6 @@ function analParamView_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 analProp;
-
-
-
-function ratioEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to ratioEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of ratioEdit as text
-%        str2double(get(hObject,'String')) returns contents of ratioEdit as a double
-order =  str2double(handles.iParamEdit1.String);        % Read order
-a = eval(handles.aEdit.String);                   % Read parameter a
-L = pi/sqrt(1-2*a(1));                                     %#ok<NASGU> % Read length L (will be used in shifts)    
-lambda = sqrt(8*a(1)*(1-2*a(1)));                             %#ok<NASGU> % Growth factor (used in shifts)
-Omega = 2*sqrt(1-2*a(1));                                  %#ok<NASGU> % Fundamental wavenumber (used in shifts)   
-xj = eval(handles.xjEdit.String);                       % Eval x-shift 
-tj = eval(handles.tjEdit.String);                       % Eval t-shift
-T = str2double(handles.iParamEdit2.String);             % Eval max time
-R = eval(handles.ratioEdit.String);
-pref = handles.pref;
-[PSI, x, t] = calcDarboux(order, a, R, T, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % Prepare initial DT picture
-
-handles.PSI_anal = PSI;                                 % Save result to handles struct
-handles.x_anal = x;
-handles.t_anal = t;
-guidata(hObject, handles);
-
-densityPlot(abs(PSI).^2, x, t, 1, 1, handles.axes4);       % Plot density
-PSI_k = log(abs(fft(PSI'))/length(PSI(1, :)));             % Calculate spectrum
-fourierPlot(PSI_k', t, 7, 1, handles.axes5);               % Plot spectrum
-axes(handles.axes4); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^2)))); % Prepare titles
-axes(handles.axes5); title('Analytical');   % Prepare titles
-
-% Update handles structure
-guidata(hObject, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -1307,7 +839,7 @@ function numEnergy_Callback(hObject, eventdata, handles)
 g = str2double(handles.potEdit.String);
 Nx = str2double(handles.NEdit.String);
 dt = str2double(handles.dtEdit.String);
-[dE, E, ke, pe] = energy(handles.PSI_num, handles.t_num, handles.k2, Nx, g, dt);
+[dE, E, ke, pe] = energy(handles.PSI_num, handles.t_num, handles.k_num.^2, Nx, g, dt);
 figure;
 plot(handles.t_num, dE, 'LineWidth', 1.5); title('dE'); title('Integrated Energy Error');
 xlabel('t'); ylabel('dE'); grid on;
@@ -1320,3 +852,380 @@ hold on;
 plot(handles.t_num, pe, 'LineWidth', 1.5);
 legend('E', 'T', 'V', 'Location', 'Best');
 xlabel('t'); ylabel('E'); grid on;
+
+
+% --------------------------------------------------------------------
+function pubModeSettings_Callback(hObject, eventdata, handles)
+% hObject    handle to pubModeSettings (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+pubModeSettings;
+
+% --- Executes on selection change in seedMenu.
+function seedMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to seedMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+str = hObject.String;
+val = hObject.Value;
+seed = str{val};
+switch lower(seed)
+    case {'breather', 'soliton'}
+        handles.gCNEdit.Enable = 'off';
+    case {'cn', 'dn'}
+        handles.gCNEdit.Enable = 'on';
+    otherwise
+        error('Unknown Seed.');
+end
+
+% --- Executes during object creation, after setting all properties.
+function seedMenu_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to seedMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+% --- Executes during object creation, after setting all properties.
+function gCNEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to gCNEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in runDTButton.
+function runDTButton_Callback(hObject, eventdata, handles)
+% hObject    handle to runDTButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+order =  str2double(handles.iParamEdit1.String);
+a = eval(handles.aEdit.String); 
+L = pi/sqrt(1-2*a(1));                        %#ok<NASGU> % Read length L (will be used in shifts)    
+lambda = sqrt(8*a(1)*(1-2*a(1)));             %#ok<NASGU> % Growth factor (used in shifts)
+Omega = 2*sqrt(1-2*a(1));                     %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+xj = eval(handles.xjEdit.String);
+tj = eval(handles.tjEdit.String);
+T = str2double(handles.iParamEdit2.String);
+R = eval(handles.ratioEdit.String);
+g = eval(handles.gCNEdit.String);
+pref = handles.pref;
+str = get(handles.seedMenu, 'String');
+val = get(handles.seedMenu,'Value');
+seed = str{val};
+[PSI, x, t] = calcDarboux(order, a, R, T, g, seed, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % FIX PLEASE
+
+peak = peakPredict(a, order, R, seed, g);
+handles.peakLabel.String = num2str(abs(peak).^handles.pref.pwr);
+
+nlsePlot(abs(PSI).^pref.pwr, x, t, 1, 1, handles.analRealAxes, pref.plotType);
+%k = 2*(-pref.Nx/2:1:pref.Nx/2-1)'*pi/2/max(x);          % Wave number
+k = (-pref.Nx/2:pref.Nx/2-1);
+fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.analInverseAxes, pref.fourierPlotType);
+
+axes(handles.analRealAxes); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
+axes(handles.analInverseAxes); title('Analytical');
+
+handles.analPlotMode = pref.plotType;
+handles.analFourierPlotMode = pref.fourierPlotType;
+handles.PSI_anal = PSI;                                 % Save result to handles struct
+handles.x_anal = x;
+handles.t_anal = t;
+handles.order = order;
+handles.k_anal = k;
+guidata(hObject, handles);
+
+% --- Executes on key press with focus on main_GUI and none of its controls.
+function main_GUI_KeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to main_GUI (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+switch eventdata.Key
+  case 'return'
+    runDTButton_Callback(hObject, eventdata, handles);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% RUN BUTTON CALL BACK
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% --- Executes on button press in runButton.
+function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
+% hObject    han    5dle to runButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+    dt = str2double(handles.dtEdit.String);                    % Read dt from edit
+    Nx =  str2double(handles.NEdit.String);                    % read Nx from edit
+    Tmax = str2double(handles.tfEdit.String);                  % Read Tmax from edit
+    Nt = Tmax/dt;                                              % Calculate Nt
+    mult = str2double(handles.aLMultEdit.String);              % Read mult from edit box
+    R = eval(handles.ratioEdit.String);
+    a = eval(handles.aEdit.String); 
+    
+    if strcmp(handles.LEdit.Enable, 'on')
+        L = str2double(handles.LEdit.String);
+    else
+        [~, D] = rat(R);
+        if ~imag(a) % If parameter 'a' is used.
+            aa = a(1); 
+        else % Otherwise, complex eigenvalue form is assumed
+            aa = imag(a(1))^2/2; % Calculate parameter 'a' from 'l'
+        end  
+        disp(aa);
+        L = D*mult*pi/sqrt(1-2*aa);     % Periodic length
+        Omega = 2*sqrt(1-2*aa);      % Principal wave number
+    end
+        
+    xj = eval(handles.xjEdit.String);
+    tj = eval(handles.tjEdit.String);
+    
+    dx = L/Nx;                             % Spatial step size
+    x = (-Nx/2:1:Nx/2-1)'*dx;
+    
+    % Determine the selected data set.
+    str = get(handles.potMenu, 'String');
+    val = get(handles.potMenu,'Value');
+    % Set current data to the selected data set.
+    switch str{val};
+    case 'g*|psi|^2 (cubic)' % Cubic NLSE
+        g = str2double(handles.potEdit.String);
+        V = @(psi, x) (g*abs(psi).^2);
+    case 'alpha*x^2 (parabolic)' % Parabolic SE
+        alpha = str2double(handles.potEdit.String);
+        V = @(psi, x) 1/2*alpha*x.^2;
+    end
+    
+    psi0_selection = handles.psi0Listbox.Value;
+    
+    if (psi0_selection == 1) % THIS SHOULD BE MOVED TO GEN COEFF!!!
+        order =  str2double(handles.iParamEdit1.String);
+        T = str2double(handles.iParamEdit2.String);
+        R = eval(handles.ratioEdit.String);
+        g = eval(handles.gCNEdit.String);
+        str = get(handles.seedMenu, 'String');
+        val = get(handles.seedMenu,'Value');
+        seed = str{val};
+        [psi_dt, x_dt, ~] = calcDarboux(order, a, R, T, g, seed, xj, tj, Nx, 0, 'periodic', 0, mult);
+        if length(R) == 1 && R == 2
+            R = 1:order;
+        else
+            R = [1, R];
+        end
+        [A0, A] = genCoeff(x_dt, psi_dt, a, order, R, 1, handles.uipanel2, handles.iCheck1.Value);
+             
+        psi_0 = A0;
+        for i=1:order
+            psi_0 = psi_0 + 2*A(i)*cos(R(i)*Omega*x);
+        end
+%         norm = dx*(psi_0')*(psi_0)/L;
+%         disp(['Norm is: ', num2str(norm)]);
+        handles.uitable1.Data = [A0, A].';
+        
+    elseif (psi0_selection == 2)
+        
+        A = handles.uitable1.Data;
+        if iscell(A)
+            for i = 1:length(A)
+                if isempty(A{i})
+                    B(i) = 0;
+                else
+                    B(i) = A{i};
+                end
+            end
+            A = B.';
+        end
+        A = A(2:end);
+        
+        A02 = 1;
+        for i = 1:length(A)
+            A02 = A02 - 2*abs(A(i))^2;
+        end
+        A0 = sqrt(A02);
+        
+        psi_0 = A0;
+        for i=1:length(A)
+            psi_0 = psi_0 + 2*A(i)*cos(R(i)*Omega*x);
+        end
+        handles.uitable1.Data = [A0; A];
+    elseif (psi0_selection == 3)
+        s = str2double(handles.iParamEdit1.String);
+        n = str2double(handles.iParamEdit2.String);
+        psi_0 = exp(-x.^2/2/s^2).*hermiteH(n, x/s);
+    elseif (psi0_selection == 4)
+        s = str2double(handles.iParamEdit1.String);
+        n = str2double(handles.iParamEdit2.String);
+        psi_0 = exp(-x.^2/2/s^2).*besselj(n, x);
+    elseif (psi0_selection == 5)
+        a = str2double(handles.iParamEdit1.String);
+        psi_0 = exp(a*x).*airy(x);
+    end
+    
+    orderSelection = handles.orderBox.Value;
+    if orderSelection == 1
+        method = 'T1';
+    elseif orderSelection == 2
+        method = 'T2';
+    elseif orderSelection == 3
+        method = 'T4S';
+    elseif orderSelection == 4
+        method = 'T4M';
+    elseif orderSelection == 5
+        method = 'T6S';
+    elseif orderSelection == 6
+        method = 'TM';
+    elseif orderSelection == 7
+        method = 'T8S';    
+    elseif orderSelection == 8
+        method = 'T8M';
+    end
+    [PSI, x, t, k] = solve(dt, Nx, Tmax, L, mult, V, psi_0, method); 
+    handles.k_num = k;
+
+%    initialPlot(PSI(1, :), x, handles.axes1);
+    pref = handles.pref;
+    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/1000), ceil(Nx/256), handles.numRealAxes, pref.plotType);
+    k = (-Nx/2:Nx/2-1);
+    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.numInverseAxes, pref.fourierPlotType);
+  
+    axes(handles.numRealAxes); title(sprintf('Numerical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
+    axes(handles.numInverseAxes); title('Numerical'); 
+    handles.PSI_num = PSI;           % Save result to handles structure.
+    handles.x_num = x;
+    handles.t_num = t;
+    handles.numPlotMode = pref.plotType;
+    handles.numFourierPlotMode = pref.fourierPlotType;
+    
+    handles.SpectrumPubMode = 0;
+    handles.IntensityPubMode = 0;
+    guidata(hObject,handles)
+
+
+% --------------------------------------------------------------------
+function fileMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to fileMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --------------------------------------------------------------------
+function analExportMenu_Callback(hObject, eventdata, handles)
+k = any(strcmp('PSI_anal',fieldnames(handles))); % Check if numerical data exists in memory
+if ~k % If it doesn't, display error
+    errordlg('No DT data exists in memory, nothing to export.');
+end
+PSI = handles.PSI_anal;
+x = handles.x_anal;
+t = handles.t_anal;
+exportData(PSI, x, t, handles);
+
+% --------------------------------------------------------------------
+function numExportMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to numExportMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Load data to be saved
+k = any(strcmp('PSI_num',fieldnames(handles))); % Check if numerical data exists in memory
+if ~k % If it doesn't, display error
+    errordlg('No numerical data exists in memory, nothing to export.');
+end
+PSI = handles.PSI_num;
+x = handles.x_num;
+t = handles.t_num;
+exportData(PSI, x, t, handles);
+
+% --------------------------------------------------------------------
+function exportData(PSI, x, t, handles)
+% hObject    handle to exportDataMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+defaultName = [datestr(date, 'yyyymmdd'), '.mat'];
+
+extensions = {'*.mat',...
+ 'MATLAB MAT file (*.mat)';
+ '*.csv', 'Comma Separate Values (*.csv)';...
+ '*.txt','Space-delimited TXT (*.txt)';...
+ '*.*',  'All Files (*.*)'};
+
+[filename, pathname, index] = uiputfile(extensions, 'Save as', defaultName);
+
+if isequal(filename,0) || isequal(pathname,0) % Canceled
+   return;
+else
+   fullfile = [pathname, '\', filename];
+   if index == 1 % mat
+       save(fullfile, 'PSI', 'x', 't');
+   elseif index == 2 %csv
+       full = [[NaN, x']; t PSI];
+       dlmwrite(fullfile,full,'delimiter',',','precision',handles.pref.dec)
+   elseif index == 3 % space-delimited txt
+       full = [[NaN, x']; t PSI];
+       dlmwrite(fullfile,full,'delimiter',' ','precision',handles.pref.dec)
+   else
+       error('Cant save in this extensions');
+   end
+end
+
+
+% --------------------------------------------------------------------
+function exportDataMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to exportDataMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on key press with focus on main_GUI or any of its controls.
+function main_GUI_WindowKeyPressFcn(hObject, eventdata, handles)
+% hObject    handle to main_GUI (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
+%	Key: name of the key that was pressed, in lower case
+%	Character: character interpretation of the key(s) that was pressed
+%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
+% handles    structure with handles and user data (see GUIDATA)
+switch eventdata.Key
+  case 'return'
+    runDTButton_Callback(hObject, eventdata, handles);
+end
+
+
+function analFourierSwitch_Callback(hObject, eventdata, handles)
+pref = handles.pref;
+PSI = handles.PSI_anal;
+t = handles.t_anal;
+k = handles.k_anal;
+if strcmp(handles.analFourierPlotMode, 'lines'); % Axes are in density plot mode
+    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.analInverseAxes, 'density');
+    handles.analFourierPlotMode = 'density';
+else
+    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.analInverseAxes, 'lines');
+    handles.analFourierPlotMode = 'lines';
+end
+title('Analytical');
+guidata(hObject, handles);
+
+
+function numFourierSwitch_Callback(hObject, eventdata, handles)
+pref = handles.pref;
+PSI = handles.PSI_num;
+t = handles.t_num;
+k = handles.k_num;
+if strcmp(handles.numFourierPlotMode, 'lines'); % Axes are in density plot mode
+    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.numInverseAxes, 'density');
+    handles.numFourierPlotMode = 'density';
+else
+    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.numInverseAxes, 'lines');
+    handles.numFourierPlotMode = 'lines';
+end
+title('Numerical');
+guidata(hObject, handles);

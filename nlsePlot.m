@@ -1,4 +1,4 @@
-function densityPlot(PSI, x, t, tIntr, xIntr, handle)
+function nlsePlot(PSI, x, t, tIntr, xIntr, handle, mode)
 % densityPlot: used to plot flat density maps of RWs and ABs.
 % Input: PSI: this is the matrix with the data points. Note that it can't
 %             be complex, if you are interested in plotting intensity then 
@@ -15,27 +15,43 @@ function densityPlot(PSI, x, t, tIntr, xIntr, handle)
 axes(handle);
 
 % Plot
-surf(x(1:xIntr:end), t(1:tIntr:end), PSI(1:tIntr:end, 1:xIntr:end), ...
+switch lower(mode)
+    case 'density'
+        surf(x(1:xIntr:end), t(1:tIntr:end), PSI(1:tIntr:end, 1:xIntr:end), ...
                                                 'EdgeColor', 'none'); 
-
-% Adjust misc plot components
-colormap('Jet');
-colorbar('eastoutside') 
-ylabel('t'); xlabel('x'); zlabel('|\psi|^2'); 
-view([0 0 90]) 
+        % Adjust misc plot components
+        colormap('Jet'); colorbar('eastoutside'); view([0 0 90]);
+    case '3d'
+        h = surf(x(1:xIntr:end), t(1:tIntr:end), PSI(1:tIntr:end, 1:xIntr:end), 'EdgeColor', 'none');     
+        colorbar off;
+        view(-62,42)
+        shading interp
+        lightangle(-40,50);
+        h.FaceLighting = 'gouraud';
+        h.AmbientStrength = 0.3;
+        h.DiffuseStrength = 0.8;
+        h.SpecularStrength = 0.5;
+        h.SpecularExponent = 3;
+        h.BackFaceLighting = 'reverselit';
+        colormap('Jet');
+        grid off;
+    otherwise
+        error('Unknown plotting mode');
+end
 
 hXLabel = xlabel('x');
 hYLabel = ylabel('t');
+hZLabel = zlabel('|\psi|^2'); 
 
-pk_max = max(max(PSI));
-pk_min = min(min(PSI));
-caxis([pk_min pk_max]);
+%pk_max = max(max(PSI));
+%pk_min = min(min(PSI));
+%caxis([pk_min pk_max]);
 
 set( gca                       , ...
     'FontName'   , 'Helvetica' );
-set([hXLabel, hYLabel         ], ...
+set([hXLabel, hYLabel, hZLabel         ], ...
     'FontName'   , 'Helvetica');
-set([hXLabel, hYLabel       ]  , ...
+set([hXLabel, hYLabel, hZLabel         ]  , ...
     'FontSize'   , 10          );
 
 set(gca, ...
@@ -49,6 +65,6 @@ set(gca, ...
   'XColor'      , [.3 .3 .3]      , ...
   'YColor'      , [.3 .3 .3]      , ...
   'LineWidth'   , 1               , ...
-  'XLim'        , [min(x) max(x)] ,...
+  'XLim'        , [-max(x) max(x)] ,...
   'YLim'        , [floor(min(t)) ceil(max(t))]);
 end

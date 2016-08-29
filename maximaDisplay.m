@@ -76,7 +76,7 @@ handles.output = hObject;
         t = mainHandles.t_anal;
     end
     
-    maxima = regions(PSI, x, t);
+    maxima = maxima(PSI, x, t);
     
     handles.uitable1.Data = maxima;
  end

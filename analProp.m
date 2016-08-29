@@ -77,7 +77,6 @@ Omega = 2*sqrt(1-2*a);
 lambda = sqrt(8*a.*(1-2*a));
 L_pi = 1./sqrt(1-2*a);
 L = pi./sqrt(1-2*a);
-disp(size(a));
 
 data = [a; Omega; lambda; L; L_pi];
 handles.uitable1.Data = data';

@@ -22,7 +22,7 @@ function varargout = Preferences(varargin)
 
 % Edit the above text to modify the response to help Preferences
 
-% Last Modified by GUIDE v2.5 01-Jul-2016 22:03:34
+% Last Modified by GUIDE v2.5 27-Aug-2016 20:51:11
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -137,6 +137,26 @@ if exist('preferences.mat', 'file') == 2
         LPeriodicRadio_Callback(handles.LPeriodicRadio, eventdata, handles);
         handles.aLMultEdit.String = num2str(pref.aLMult);
     end
+    
+    if strcmp(pref.plotType, '3D');
+        handles.plot3DRadio.Value = 1;
+    else
+        handles.densityRadio.Value = 1;
+    end
+    
+    if pref.pwr == 1;
+        handles.zExp1Radio.Value = 1;
+    else
+        handles.zExp1Radio.Value = 0;
+    end
+
+    if strcmp(pref.fourierPlotType, 'lines');
+        handles.fourierLinesRadio.Value = 1;
+    else
+        handles.fourierDensityRadio.Value = 1;
+    end
+    handles.fourierLinesEdit.String = num2str(pref.fourierLines);
+
 else
     uiwait(warndlg('Warning: No RogueLab preferences file exists. Loading defaults. File will be created when you press OK on the preferences dialog.'));
 end
@@ -169,11 +189,27 @@ if handles.LManualRadio.Value == 1;
     pref.Lmode = 'manual';
 else
     pref.Lmode = 'periodic';
-
 end
+if handles.zExp1Radio.Value == 1;
+    pref.pwr = 1;
+else
+    pref.pwr = 2;
+end
+if handles.plot3DRadio.Value == 1;
+    pref.plotType = '3D';
+else
+    pref.plotType = 'density';
+end
+if handles.fourierLinesRadio.Value == 1;
+    pref.fourierPlotType = 'lines';
+else
+    pref.fourierPlotType = 'density';
+end
+pref.fourierLines = eval(handles.fourierLinesEdit.String);
 
 pref.L = eval(handles.LEdit.String);
 pref.aLMult = eval(handles.aLMultEdit.String);
+pref.dec = eval(handles.decEdit.String);
 
 save('preferences.mat', 'pref');   
 
@@ -236,8 +272,6 @@ if isequal(get(hObject,'CurrentKey'),'return')
     uiresume(handles.figure1);
 end    
 
-
-
 function NxEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to NxEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -259,8 +293,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
 function NtEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to NtEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -268,7 +300,6 @@ function NtEdit_Callback(hObject, eventdata, handles)
 
 % Hints: get(hObject,'String') returns contents of NtEdit as text
 %        str2double(get(hObject,'String')) returns contents of NtEdit as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function NtEdit_CreateFcn(hObject, eventdata, handles)
@@ -281,8 +312,6 @@ function NtEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function LEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to LEdit (see GCBO)
@@ -304,8 +333,6 @@ function LEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function aLMultEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to aLMultEdit (see GCBO)
@@ -336,9 +363,8 @@ function LManualRadio_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of LManualRadio
-    set(handles.LEdit, 'Enable', 'on')
-    %set(handles.aEdit, 'Enable', 'off')
-    set(handles.aLMultEdit, 'Enable', 'off')
+set(handles.LEdit, 'Enable', 'on')
+set(handles.aLMultEdit, 'Enable', 'off')
 
 
 % --- Executes on button press in LPeriodicRadio.
@@ -363,4 +389,50 @@ switch button
     case 'Yes'
     delete preferences.mat;
     uiwait(warndlg('Preferences reset to default. Close the preferences window and reopen it.'));
+end
+
+
+
+function decEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to decEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of decEdit as text
+%        str2double(get(hObject,'String')) returns contents of decEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function decEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to decEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function fourierLinesEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to fourierLinesEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of fourierLinesEdit as text
+%        str2double(get(hObject,'String')) returns contents of fourierLinesEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function fourierLinesEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to fourierLinesEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
 end
