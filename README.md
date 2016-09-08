@@ -1,6 +1,6 @@
 # RogueLab
 ## IMPORTANT:
-RogueLab (soon to be renamed) is currently being prepared for publication, the paper should be submitting in a few weeks if everything goes to plan. All documentation available on GitHub is extremely outdated (at least a year old), and the only documentation available at this time is only accessible by our group until I submit the paper. After the paper is submitted and this repository is cleaned up, I will upload extensive documentation.
+RogueLab (soon to be renamed) is currently being prepared for publication, the paper should be submitted in a few weeks if everything goes to plan. All documentation available on GitHub is extremely outdated (at least a year old), and the only documentation available at this time is only accessible by our group until I submit the paper. After the paper is submitted and this repository is cleaned up, I will upload extensive documentation.
 
 Outdated ReadMe
 ________________________
