@@ -26,30 +26,17 @@ k2 = k.^2;                              % Squares of wavenumbers
 PSI = zeros(length(t), length(x));      % Matrix to save whole simulatin
 PSI(1, :) = psi;                        % Save first step
 
-%E = energy(psi, k2, Nx, V);            % Initial energy
+algList = {'T1', 'T2', 'T4M', 'T4S', 'T6M', 'T6S', 'T8M', 'T8S'};
+% Select Algorithm
+if ~any(strcmp(algorithm,algList))
+    error('Algorithm unrecognized. Please check documentation')
+else
+    Tn = str2func(algorithm);
+end
+
 waitbar(0, hWaitBar, 'Solving: 0%');
 for j = 1:Nt                          % Start time evolution
-    if strcmp(algorithm, 'T1')             % First order
-        psi = T1(psi, dt, k2, V, x); 
-    elseif strcmp(algorithm, 'T2')         % Second order
-        psi = T2(psi, dt, k2, V, x, mult); 
-    elseif strcmp(algorithm, 'T4M')         % Fourth order
-        psi = T4M(psi, dt, k2, V, x, mult);
-    elseif strcmp(algorithm, 'T4S')      % Fourth order symplectic
-        psi = T4S(psi, dt, k2, V, x, mult);
-    elseif strcmp(algorithm, 'T6M')         % Sixth order multiproduct
-        psi = T6M(psi, dt, k2, V, x, mult);
-    elseif strcmp(algorithm, 'T6S')      % Sixth order symplectic
-        psi = T6S(psi, dt, k2, V, x, mult);
-    elseif strcmp(algorithm, 'T8M')         % Eighth order multiproduct
-        psi = T8M(psi, dt, k2, V, x, mult);   
-    elseif strcmp(algorithm, 'T8S')      % Eighth order symplectic
-        psi = T8S(psi, dt, k2, V, x, mult);
-    else                                % Error
-        error('Method not recognized. Please consult documentation')
-    end
-        
-    PSI(j+1, :) = psi;                 % Save result of current time step
+    PSI(j+1, :) = Tn(PSI(j,:).', dt, k2, V, x, mult);  % Evolve 1 step
     
     if ~mod(j/Nt*100, 5)               % Update waitbar every 5% 
         waitbar(j/Nt, hWaitBar, sprintf('Solving: %d%%', j/Nt*100));
@@ -58,7 +45,7 @@ end
 
 close(hWaitBar)
 
-function [psi] = T1(psi, dt, k2, V, x)
+function [psi] = T1(psi, dt, k2, V, x, ~)
 % T1:
 %   This function calculates one time step using a first order split step
 %   algorithm. 
@@ -71,10 +58,10 @@ function [psi] = T1(psi, dt, k2, V, x)
 %       V:   potential
 
 pot = V(psi, x);                         % Calculate potential
-psi = exp(-1i * pot .* dt).*psi;         % Nonlinear calculation %%% CHANGE 2/2 to dt/2
+psi = exp(-1i * pot .* dt).*psi;         % Nonlinear calculation
 
 psi = fftshift(fft(psi));                % FFT
-psi = exp(-1i * dt * k2/2).*psi;         % Linear calculation %%%% CHANGE dt*2 to dt
+psi = exp(-1i * dt * k2/2).*psi;         % Linear calculation 
 psi = ifft(fftshift(psi));               % Inverse FFT
 
 function [psi] = T2(psi, dt, k2, V, x, mult)
@@ -91,14 +78,14 @@ function [psi] = T2(psi, dt, k2, V, x, mult)
 Nx = length(x);
 
 pot = V(psi, x);                        % Calculate potential
-psi = exp(-1i * pot .* dt/2).*psi;        % Nonlinear calculation
+psi = exp(-1i * dt/2 * pot).*psi;        % Nonlinear calculation
 
 psi = fftshift(fft(psi));                % FFT
 psi = exp(-1i * dt * k2/2).*psi;         % Linear calculation
 psi = ifft(fftshift(psi));               % Inverse FFT
 
 pot = V(psi, x);                         % Calculate potential
-psi = exp(-1i * pot .* dt/2).*psi;       % Nonlinear calculation
+psi = exp(-1i * dt/2 * pot).*psi;       % Nonlinear calculation
 
 % See documentation for explanation of what mult does.
 % You will almost always want to set mult to 1 unless you are investigating
@@ -109,7 +96,7 @@ psi = exp(-1i * pot .* dt/2).*psi;       % Nonlinear calculation
 % generating ugly dress patterns for your grandmother.
 if mult > 1                             
     psi = fft(psi);              
-    for i = 2:Nx/2+1;
+    for i = 2:Nx/2+1
         if(mod(i-1, mult) ~= 0)
             psi(i) = 0;
             psi(Nx - i  + 2) = 0;
@@ -119,7 +106,7 @@ if mult > 1
     psi = ifft(psi);
 end
 
-function psi = T4M(psi, dt, k2, V, x, mult)
+function psi = T4M(psi, dt, k2, V, x, mult) %#ok<*DEFNU>
 % T4M:
 %   This function calculates one time step using an fourth order split step
 %   multi-product algorithm. 
