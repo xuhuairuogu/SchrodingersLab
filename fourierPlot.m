@@ -33,8 +33,8 @@ if strcmp(mode, 'lines')
     hLegend = legend(legendInfo);
     set(hLegend, 'Location', 'BestOutside');
 
-    hXLabel = xlabel('t');
-    hYLabel = ylabel('ln(|A_k|)');
+    hXLabel = xlabel('$x$', 'Interpreter', 'latex');
+    hYLabel = ylabel('$\ln(|A_k|$)', 'Interpreter', 'latex');
 
     set( gca                       , ...
         'FontName'   , 'Helvetica' );
