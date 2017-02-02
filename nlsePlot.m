@@ -13,6 +13,7 @@ function nlsePlot(PSI, x, t, tIntr, xIntr, handle, mode)
 
 % Set current axes
 axes(handle);
+delete(handle.Children);
 
 % Plot
 switch lower(mode)
@@ -22,7 +23,7 @@ switch lower(mode)
         % Adjust misc plot components
         colormap('Jet'); colorbar('eastoutside'); view([0 0 90]);
     case '3d'
-        h = surf(x(1:xIntr:end), t(1:tIntr:end), PSI(1:tIntr:end, 1:xIntr:end), 'EdgeColor', 'none');     
+        h = surf(x(1:xIntr:end), t(1:tIntr:end), PSI(1:tIntr:end, 1:xIntr:end), 'EdgeColor', 'none'); 
         colorbar off;
         view(-62,42)
         shading interp
@@ -33,7 +34,7 @@ switch lower(mode)
         h.SpecularStrength = 0.5;
         h.SpecularExponent = 3;
         h.BackFaceLighting = 'reverselit';
-        colormap('Jet');
+        colormap(jet(256));
         grid off;
     otherwise
         error('Unknown plotting mode');
@@ -42,10 +43,6 @@ end
 hXLabel = xlabel('x');
 hYLabel = ylabel('t');
 hZLabel = zlabel('|\psi|^2'); 
-
-%pk_max = max(max(PSI));
-%pk_min = min(min(PSI));
-%caxis([pk_min pk_max]);
 
 set( gca                       , ...
     'FontName'   , 'Helvetica' );
@@ -67,4 +64,9 @@ set(gca, ...
   'LineWidth'   , 1               , ...
   'XLim'        , [-max(x) max(x)] ,...
   'YLim'        , [floor(min(t)) ceil(max(t))]);
+
+hx = xlabel('$t$','FontSize',11,'Interpreter','latex');
+zlabel('$|\psi|^2$','FontSize',11,'Interpreter','latex');
+hy = ylabel('$x$','FontSize',11,'Interpreter','latex');
+
 end
