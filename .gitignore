@@ -43,7 +43,7 @@ Temporary Items
 .apdisk
 
 # MATLAB autosave
-.asv
+*.asv
 
 Archive
 RogueLab
@@ -51,8 +51,8 @@ RogueLab_resources
 results
 diary
 RogueLab.prj
-testNewMethod.m
+RogueLabIcon.fig
+RogueLabSplach.fig
 *.png
-*.asv
-olympic.m
-spacing.txt
+DN
+fig2m.m
