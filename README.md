@@ -1,4 +1,9 @@
-# HighNLSE
+# RogueLab
+## IMPORTANT:
+RogueLab (soon to be renamed) is currently being prepared for publication, the paper should be submitted in a few weeks if everything goes to plan. All documentation available on GitHub is extremely outdated (at least a year old), and the only documentation available at this time is only accessible by our group until I submit the paper. After the paper is submitted and this repository is cleaned up, I will upload extensive documentation.
+
+Outdated ReadMe
+________________________
 ##IMPORTANT NOTE:
 I tested this solved in MATLAB 2013a and 2015a and it had some issues with finite background waves in 2013a. This does not show in 2015a whatsoever, no idea what caused it.
 This repo hasn't been maintained in a while, but I am working on it again and updating the solver.
