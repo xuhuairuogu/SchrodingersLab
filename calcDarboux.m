@@ -1,4 +1,4 @@
-function [PSI, xo, to] = calcDarboux(n, a, R, tmax, g, seed, xs, ts, Nx, Nt, mode, Lk, mult)
+function [PSI, xo, to, L] = calcDarboux(n, a, R, tmax, g, seed, xs, ts, Nx, Nt, mode, Lk, mult)
 % calcDarboux: Wrapper function for calculating the Darboux Trasformation
 %              for investigating analytical solutions of the nonlinear
 %              Schrodinger equation.
@@ -18,10 +18,18 @@ function [PSI, xo, to] = calcDarboux(n, a, R, tmax, g, seed, xs, ts, Nx, Nt, mod
 %              mult: How many periods to display if 'periodic' is selected.
 
 % Determine which mode DT is running in
-if length(a) == 1 && R == 2;        % Maximal intensity family mode
+% This needs to be rewritten to use "l" instead of a.
+if length(a) == 1 && R == 2 && strcmp(seed, 'Breather') && n >= 2;        % Maximal intensity family mode
     for k = 1:n
         a(k) = k^2*(a(1)-1/2)+1/2;
     end
+elseif length(a) == 1 && R == 2 && strcmp(seed, 'Dn') && n >= 2;        % Maximal intensity cnoidal family mode
+    v = imag(a);
+    for k = 1:n
+        P = (g.^4.*k.^2+8.*((-2)+g.^2).*(-1+k.^2).*v.^2+16.*k.^2.*v.^4).^(1/2);
+        nu(k) = (1/4).*2.^(-1/2).*v.^(-1).*(P.^2+(P.^4+(-64).*g.^4.*v.^4).^(1/2)).^(1/2);
+    end
+    a = 1i*nu;
 elseif length(a) == 1 && R ~= 2;    % Second order RW where Omega2=R*Omega1
     if n > 2
         uiwait(warndlg('Ratio not equal to 2 and order > 2. Feature not yet implemented')); 
@@ -29,6 +37,24 @@ elseif length(a) == 1 && R ~= 2;    % Second order RW where Omega2=R*Omega1
     end 
     a2 = R^2*(a(1) - 1/2) + 1/2;
     a = [a(1), a2];
+end
+
+% Determine whether in eigenvalue or 'a' mode.
+if ~imag(a) % If 'a' mode, calculate purely imag eigenvalues
+    l = 1i*sqrt(2*a); 
+else % Otherwise, eigenvalues already entered
+    l = a;
+end
+
+if strcmp(seed, 'Breather') || strcmp(seed, 'Soliton');
+    kappa = 2*sqrt(1+l.^2);      % Principal wave number
+    chi = 0.5*acos(kappa/2);
+elseif strcmp(seed, 'Dn')
+    kappa = sqrt(1+(l - g^2/4./l).^2);  % Half the principal wave number
+    chi = 0.5*acos(kappa);
+elseif strcmp(seed, 'Cn')
+    kappa = g*sqrt(1+1/g^2*(l - 1/4./l).^2); 
+    chi  = 0.5*acos(kappa/g); 
 end
 
 % Denominator of ratio between Omega2 and Omega1 determines box size. This
@@ -40,32 +66,15 @@ switch mode
     case 'manual' % Manual mode
         L = Lk;
     case 'periodic' % Periodic mode
-        if ~imag(a) % If parameter 'a' is used.
-            aa = a(1); 
-        else % Otherwise, complex eigenvalue form is assumed
-            aa = imag(a(1))^2/2; % Calculate parameter 'a' from 'l'
-        end  
-        L = D*mult*pi/sqrt(1-2*aa);     % Periodic length
+        switch lower(seed)
+            case 'breather'
+                L = 2*D*mult*pi/kappa(1);     % Periodic length
+            case 'dn'
+                L = D*mult*pi/kappa(1);
+            otherwise
+                error('Mode set to periodic for a non-periodic solution');
+        end
 end
-
-% Determine whether in eigenvalue of 'a' mode.
-if ~imag(a) % If 'a' mode, calculate purely imag eigenvalues
-    l = 1i*sqrt(2*a); 
-else % Otherwise, eigenvalues already entered
-    l = a;
-end
-
-if strcmp(seed, 'Breather') || strcmp(seed, 'Soliton');
-    kappa = 2*sqrt(1+l.^2);      % Principal wave number
-    chi = 0.5*acos(kappa/2);
-elseif strcmp(seed, 'Dn')
-    kappa = sqrt(1+(l - g^2/4./l).^2); 
-    chi = 0.5*acos(kappa);
-elseif strcmp(seed, 'Cn')
-    kappa = g*sqrt(1+1/g^2*(l - 1/4./l).^2); 
-    chi  = 0.5*acos(kappa/g); 
-end
-%L = D*mult*pi/kappa(1);
 
 % Determine box type. Essentially, if Nt > 0, then we are calculating the
 % usual t array. Same applied for x. If either of those are zero, then we
@@ -91,7 +100,7 @@ end
 psi = cell(n, 1);
 [~, ~, psi] = calc_rs(n, 1, xo, to, g, seed, xs, ts, l, kappa, chi, psi);       
 
-% Output the actual RW we are interested in
+% Output the actual solution we are interested in
 PSI = psi{n};    
 
 function [rf, sf, psi] = calc_rs(n, p, x, t, g, seed, xs, ts, l, kappa, chi, psi)
@@ -110,11 +119,6 @@ function [rf, sf, psi] = calc_rs(n, p, x, t, g, seed, xs, ts, l, kappa, chi, psi
     % For more details, see: CITE AKHMEDIEV ET AL.
     
     if n == 1 % Base case
-        % Purely imag lambda stokes' seeding
-        %A =  0.5*(acos(kappa(p)/2) + (x-xs(p))*kappa(p) - pi/2) + ...
-          %1i*0.5*((t-ts(p))*kappa(p)*sqrt(1-kappa(p)^2/4));
-        %B =  0.5*(-acos(kappa(p)/2) + (x-xs(p))*kappa(p) - pi/2) + ...
-          %1i*0.5*((t-ts(p))*kappa(p)*sqrt(1-kappa(p)^2/4));
         
         % Complex lambda stokes' seeding 
         if strcmp(seed, 'Breather')
@@ -173,7 +177,6 @@ function [rf, sf, psi] = calc_rs(n, p, x, t, g, seed, xs, ts, l, kappa, chi, psi
                 end
             end
             [x,t] = meshgrid(x,t);
-            %x = x'; t = t';
             rf = a.'.*exp(-1i*t/4*(2*g^2-1));
             sf = b.'.*exp(+1i*t/4*(2*g^2-1));
         else
