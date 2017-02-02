@@ -1,982 +1,1232 @@
-function varargout = GUI(varargin)
-% GUI MATLAB code for GUI.fig
-%      GUI, by itself, creates a new GUI or raises the existing
-%      singleton*.
-%
-%      H = GUI returns the handle to a new GUI or the handle to
-%      the existing singleton*.
-%
-%      GUI('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in GUI.M with the given input arguments.
-%
-%      GUI('Property','Value',...) creates a new GUI or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before GUI_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to GUI_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
+function fig_hdl = GUI
+% GUI              
 
-% Edit the above text to modify the response to help GUI
+% Initialize handles structure
+handles = struct();
 
-% Last Modified by GUIDE v2.5 29-Aug-2016 06:15:13
-
-% Begin initialization code - DO NOT EDIT
-gui_Singleton = 1;
-gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @GUI_OpeningFcn, ...
-                   'gui_OutputFcn',  @GUI_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
-if nargin && ischar(varargin{1})
-    gui_State.gui_Callback = str2func(varargin{1});
-end
-
-if nargout
-    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
-else
-    gui_mainfcn(gui_State, varargin{:});
-end
-% End initialization code - DO NOT EDIT
-
-% --- Executes just before GUI is made visible.
-function GUI_OpeningFcn(hObject, ~, handles, varargin)
-% This function has no output args, see OutputFcn.
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to GUI (see VARARGIN)
-
-% Choose default command line output for GUI
-handles.output = hObject;
+% Create all UI controls
+build_gui();
 
 % Load preferences
-load preferences.mat % This loads a matrix pref
+if exist('pref.mat', 'file') == 2
+    load('pref.mat', 'pref');
+else
+    createDefaultPref();
+    load('pref.mat', 'pref');
+end
 handles.pref = pref; 
-%runDTButton_Callback(hObject, eventdata, handles);
-% Update handles structure
-guidata(hObject, handles);
 
-% --- Outputs from this function are returned to the command line.
-function varargout = GUI_OutputFcn(~, ~, handles) 
-% varargout  cell array for returning output args (see VARARGOUT);
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% Assign function output
+fig_hdl = handles.main_GUI;
 
-% Get default command line output from handles structure
-varargout{1} = handles.output;
+%% ---- UI CONTROL CREATION --------------------------------------
+function build_gui()
+    %% --- FIGURE ----------------------------------------
+    handles.main_GUI = figure( ...
+        'Tag', 'main_GUI', ...
+        'Units', 'normalized', ...
+        'Position', [0.025 0.1 0.95 0.8], ... 
+        'Name', 'Rogue Lab', ...
+        'MenuBar', 'none', ...
+        'NumberTitle', 'off', ...
+        'Color', get(0,'DefaultUicontrolBackgroundColor'), ...
+        'Resize', 'on');
 
-% --- Executes during object creation, after setting all properties.
-function dtEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to dtEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+    %% --- FILE MENU -------------------------------------
+    handles.fileMenu = uimenu( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'fileMenu', ...
+        'Label', 'File', ...
+        'Checked', 'off');
+    %=========================================
+    handles.exportDataMenu = uimenu( ...
+        'Parent', handles.fileMenu, ...
+        'Tag', 'exportDataMenu', ...
+        'Label', 'Expot Data', ...
+        'Checked', 'off');
+    %=========================================
+    handles.numExportMenu = uimenu( ...
+        'Parent', handles.exportDataMenu, ...
+        'Tag', 'numExportMenu', ...
+        'Label', 'Numerical', ...
+        'Checked', 'off', ...
+        'Callback', @numExportMenu_Callback);
+    handles.analExportMenu = uimenu( ...
+        'Parent', handles.exportDataMenu, ...
+        'Tag', 'analExportMenu', ...
+        'Label', 'Analytical', ...
+        'Checked', 'off', ...
+        'Callback', @analExportMenu_Callback);
+     %=========================================
+     
+    %% --- VIEW MENU -------------------------------------
+    handles.viewMenu = uimenu( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'viewMenu', ...
+        'Label', 'View', ...
+        'Checked', 'off');
+    %=========================================
+    handles.analParamView = uimenu( ...
+        'Parent', handles.viewMenu, ...
+        'Tag', 'analParamView', ...
+        'Label', 'Analytical Parameters', ...
+        'Checked', 'off', ...
+        'Callback', @analParamView_Callback);
+    %=========================================
+        
+    %% --- EDIT MENU -------------------------------------
+    handles.editMenu = uimenu( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'editMenu', ...
+        'Label', 'Edit', ...
+        'Checked', 'off');
+    %=========================================
+    handles.menuPreferences = uimenu( ...
+        'Parent', handles.editMenu, ...
+        'Tag', 'menuPreferences', ...
+        'Label', 'Preferences', ...
+        'Checked', 'off', ...
+        'Callback', @menuPreferences_Callback);
+    %=========================================
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+    %% --- SIMULATION PANEL ------------------------------
+    handles.simPanel = uipanel( ... 
+        'Parent', handles.main_GUI, ...
+        'Tag', 'simPanel', ...
+        'Units', 'normalized', ...
+        'Position', [0.02 0.38 0.35 0.59], ...
+        'FontSize', 10, ...
+        'Title', 'Simulation', ...
+        'ShadowColor', [0.7 0.7 0.7]);
+    %=========================================
+    handles.potPanel = uipanel( ...
+        'Parent', handles.simPanel, ...
+        'Tag', 'potPanel', ...
+        'Units', 'normalized', ...
+        'Position', [0.04 0.43 0.41 0.13], ...
+        'FontSize', 10, ...
+        'Title', 'Potential', ...
+        'ShadowColor', [0.7 0.7 0.7]);
+    handles.potEdit = uicontrol( ...
+        'Parent', handles.potPanel, ...
+        'Tag', 'potEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.35 0.30 0.40], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '-1');
+    handles.potMenu = uicontrol( ...
+        'Parent', handles.potPanel, ...
+        'Tag', 'potMenu', ...
+        'Style', 'popupmenu', ...
+        'Units', 'normalized', ...
+        'Position', [0.04 0.14 0.56 0.67], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', {'g*|psi|^2 (cubic)','alpha*x^2 (parabolic)'}, ...
+        'Callback', @potMenu_Callback);
+    %=========================================
+    handles.algPanel = uipanel( ...
+        'Parent', handles.simPanel, ...
+        'Tag', 'algPanel', ...
+        'UserData', zeros(1,0), ...
+        'Units', 'normalized', ...
+        'Position', [0.50 0.87 0.25 0.11], ...
+        'FontSize', 10, ...
+        'Title', 'Algorithm', ...
+        'ShadowColor', [0.7 0.7 0.7]);
+    handles.algBox = uicontrol( ...
+        'Parent', handles.algPanel, ...
+        'Tag', 'algBox', ...
+        'Value', 2, ...
+        'UserData', zeros(1,0), ...
+        'Style', 'popupmenu', ...
+        'Units', 'normalized', ...
+        'Position', [0.06 0.28 0.91 0.49], ...
+        'BackgroundColor', [1 1 1], ...
+        'String', {'First Order','Second Order','Fourth Order (S)','Fourth Order (M)','Sixth Order (S)','Sixth Order (M)','Eighth Order (S)','Eighth Order (M)'});
+    %=========================================
+    handles.gridPanel = uipanel( ...
+        'Parent', handles.simPanel, ...
+        'Tag', 'gridPanel', ...
+        'UserData', zeros(1,0), ...
+        'Units', 'normalized', ...
+        'Position', [0.04 0.56 0.41 0.41], ...
+        'FontSize', 10, ...
+        'Title', 'Grid', ...
+        'ShadowColor', [0.7 0.7 0.7]);
+        %=========================================
+        handles.ntLabel_lx = uicontrol( ...
+            'Parent', handles.gridPanel, ...
+            'Tag', 'ntLabel_lx', ...
+            'Style', 'text', ...
+            'Units', 'normalized', ...
+            'Position', [0.05 0.64 0.44 0.11], ...
+            'String', '$N_t$', ...
+            'HorizontalAlignment', 'left');
+        handles.NtEdit = uicontrol( ...
+            'Parent', handles.gridPanel, ...
+            'Tag', 'NtEdit', ...
+            'Style', 'edit', ...
+            'Units', 'normalized', ...
+            'Position', [0.67 0.64 0.29 0.11], ...
+            'BackgroundColor', [1 1 1], ...
+            'String', '256');
+        %=========================================
+        handles.dxEdit = uicontrol( ...
+            'Parent', handles.gridPanel, ...
+            'Tag', 'dxEdit', ...
+            'Style', 'edit', ...
+            'Units', 'normalized', ...
+            'Position', [0.67 0.80 0.29 0.11], ...
+            'BackgroundColor', [1 1 1], ...
+            'String', '0.001');
+        handles.dxLabel_lx = uicontrol( ...
+            'Parent', handles.gridPanel, ...
+            'Tag', 'dxLabel_lx', ...
+            'UserData', zeros(1,0), ...
+            'Style', 'text', ...
+            'Units', 'normalized', ...
+            'Position', [0.05 0.80 0.44 0.11], ...
+            'String', '$\Delta x$', ...
+            'HorizontalAlignment', 'left');
+        %=========================================
+        handles.xfEdit = uicontrol( ...
+            'Parent', handles.gridPanel, ...
+            'Tag', 'xfEdit', ...
+            'Style', 'edit', ...
+            'Units', 'normalized', ...
+            'Position', [0.67 0.48 0.29 0.11], ...
+            'String', '20');
+        handles.xfLabel_lx = uicontrol( ...
+            'Parent', handles.gridPanel, ...
+            'Tag', 'xfLabel_lx', ...
+            'Style', 'text', ...
+            'Units', 'normalized', ...
+            'Position', [0.05 0.48 0.44 0.11], ...
+            'String', '$X_f$', ...
+            'HorizontalAlignment', 'left');
+        %=========================================
+         handles.LButtonGroup = uibuttongroup( ...
+            'Parent', handles.gridPanel, ...
+            'Units', 'normalized', ...
+            'Position',[0.04 0.05 0.93 0.41],...
+            'Title', 'L');
+        handles.LRadioButton = uicontrol( ...
+            'Parent', handles.LButtonGroup, ...
+            'Tag', 'LRadioButton', ...
+            'UserData', zeros(1,0), ...
+            'Style', 'radiobutton', ...
+            'Units', 'normalized', ...
+            'Position', [0.03 0.5 0.42 0.42], ...
+            'FontSize', 9, ...
+            'String', 'Manual', ...
+            'Callback', @LRadioButton_Callback, ...
+            'KeyPressFcn', @LRadioButton_KeyPressFcn);
+        handles.aRadioButton = uicontrol( ...
+            'Parent', handles.LButtonGroup, ...
+            'Tag', 'aRadioButton', ...
+            'Value', 1, ...
+            'UserData', zeros(1,0), ...
+            'Style', 'radiobutton', ...
+            'Units', 'normalized', ...
+            'Position', [0.03 0.12 0.54 0.42], ...
+            'FontSize', 9, ...
+            'String', 'Periodic. Multiple:', ...
+            'Callback', @aRadioButton_Callback, ...
+            'KeyPressFcn', @aRadioButton_KeyPressFcn);
+        handles.aLMultEdit = uicontrol( ...
+            'Parent', handles.LButtonGroup, ...
+            'Tag', 'aLMultEdit', ...
+            'Style', 'edit', ...
+            'Units', 'normalized', ...
+            'Position', [0.65 0.18 0.29 0.29], ...
+            'BackgroundColor', [1 1 1], ...
+            'String', '1');
+        handles.LEdit = uicontrol( ...
+            'Parent', handles.LButtonGroup, ...
+            'Tag', 'LEdit', ...
+            'Style', 'edit', ...
+            'Units', 'normalized', ...
+            'Position', [0.65 0.57 0.29 0.29], ...
+            'BackgroundColor', [1 1 1], ...
+            'String', '20', ...
+            'Enable', 'off');
+    %=========================================
+    handles.coeffTable = uitable( ...
+        'Parent', handles.simPanel, ...
+        'Tag', 'coeffTable', ...
+        'UserData', zeros(1,0), ...
+        'Units', 'normalized', ...
+        'Position', [0.500749625187406 0.431899641577061 0.469265367316342 0.369175627240143], ...
+        'BackgroundColor', [1 1 1;0.941 0.941 0.941], ...
+        'ColumnEditable', [true,false], ...
+        'ColumnFormat', {'short e',[]}, ...
+        'ColumnName', '', ...
+        'ColumnWidth', {171,1}, ...
+        'Data', {;}, ...
+        'RowName', {'A0','A1','A2','A3','A4','A5'});
+    %=========================================
+    handles.runButton = uicontrol( ...
+        'Parent', handles.simPanel, ...
+        'Tag', 'runButton', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.785607196401799 0.89426523297491 0.185907046476762 0.0519713261648745], ...
+        'FontSize', 10, ...
+        'String', 'Run', ...
+        'Callback', @runButton_Callback);
+    %=========================================
+    handles.gridAxis = axes('parent',handles.gridPanel,'units','normalized','position',[0 0.06 1 1],'visible','off');
+    % Find all static text UICONTROLS whose 'Tag' ends with '_lx'
+    lbls = findobj(handles.gridPanel,'-regexp','tag','_lx*');
+    for i=1:length(lbls)
+        l = lbls(i);
+        % Get current text, position and tag
+        set(l,'units','normalized');
+        s = get(l,'string');
+        v = get(l, 'visible');
+        p = get(l,'position');
+        t = get(l,'tag');
+        % Remove the UICONTROL
+        delete(l);
+        % Replace it with a TEXT object 
+        handles.(t) = text(p(1),p(2),s,'interpreter','latex', 'visible', v);
+    end
+    %=========================================
+    
+    %% --- IC PANEL --------------------------------------
+    handles.icPanel = uipanel( ...
+        'Parent', handles.simPanel, ...
+        'Tag', 'icPanel', ...
+        'Units', 'normalized', ...
+        'Position', [0.04 0.15 0.93 0.27], ...
+        'FontSize', 10, ...
+        'Title', 'Initial Condition', ...
+        'ShadowColor', [0.7 0.7 0.7]);
+    %=========================================
+    handles.psi0EqLabel_lx = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'psi0EqLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.39 0.84 0.6 0.12], ...
+        'FontSize', 10, ...
+        'String', '$\psi_0 = DT(x=X,t)$', ...
+        'HorizontalAlignment', 'left', ...
+        'Callback', @psi0EqLabel_Callback);
+    %=========================================
+    handles.sHermBesLabel_lx = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'sHermBesLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Visible', 'off', ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.60 0.57 0.03 0.15], ...
+        'FontSize', 10, ...
+        'String', '$s$', ...
+        'HorizontalAlignment', 'left');
+    handles.sHermBesEdit = uicontrol( ...
+        'Parent', handles.icPanel', ...
+        'Tag', 'sHermBesEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Visible', 'off', ...
+        'Position', [0.66 0.57 0.07 0.17], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '-10');
+    %=========================================
+    handles.aAiryLabel_lx = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'aAiryLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Visible', 'off', ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.38 0.57 0.03 0.17], ...
+        'FontSize', 10, ...
+        'String', '$a$', ...
+        'HorizontalAlignment', 'left');
+    handles.aAiryEdit = uicontrol( ...
+        'Parent', handles.icPanel', ...
+        'Tag', 'aAiryEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Visible', 'off', ...
+        'Position', [0.47 0.57 0.09 0.17], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '0.1');
+    %=========================================
+    handles.nHermBesLabel_lx = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'nHermBesLabel_lx', ...
+        'Visible', 'off', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.38 0.57 0.03 0.17], ...
+        'FontSize', 10, ...
+        'String', '$n$', ...
+        'HorizontalAlignment', 'left');
+    handles.nHermBesEdit = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'nHermBesEdit', ...
+        'Style', 'edit', ...
+        'Visible', 'off', ...
+        'Units', 'normalized', ...
+        'Position', [0.47 0.57 0.09 0.17], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '2');
+    %=========================================
+    handles.aManABLabel_lx = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'aManABLabel_lx', ...
+        'Visible', 'off', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.38 0.57 0.03 0.17], ...
+        'FontSize', 10, ...
+        'String', '$a$', ...
+        'HorizontalAlignment', 'left');
+    handles.aManABEdit = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'aManABEdit', ...
+        'Style', 'edit', ...
+        'Visible', 'off', ...
+        'Units', 'normalized', ...
+        'Position', [0.47 0.57 0.09 0.17], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '0.43');
+    %=========================================
+    handles.approxAjCheck = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'approxAjCheck', ...
+        'Style', 'checkbox', ...
+        'Units', 'normalized', ...
+        'Visible', 'off', ...
+        'Position', [0.38 0.57 0.4 0.17], ...
+        'String', 'Significant figures in A_j', ...
+        'Callback', @approxAjCheck_Callback);
+    handles.decimalsEdit = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'decimalsEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.7 0.57 0.12 0.17], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '4', ...
+        'Visible', 'off', ...
+        'Enable', 'off');
+    %=========================================
+    handles.psi0Listbox = uicontrol( ...
+        'Parent', handles.icPanel, ...
+        'Tag', 'psi0Listbox', ...
+        'Style', 'listbox', ...
+        'Units', 'normalized', ...
+        'Position', [0.02 0.1 0.345 0.85], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', {'Pure DT', 'Cosine Series from DT','Manual Cosine Series','Hermite-Gauss beam','Bessel-Gauss beam','Finite energy Airy beam'}, ...
+        'Callback', @psi0Listbox_Callback);
+    %=========================================
+    handles.icAxis = axes('parent',handles.icPanel,'units','normalized','position',[0 0.07 1 1],'visible','off');
+    % Find all static text UICONTROLS whose 'Tag' ends with '_lx'
+    lbls = findobj(handles.icPanel,'-regexp','tag','_lx*');
+    for i=1:length(lbls)
+        l = lbls(i);
+        % Get current text, position and tag
+        set(l,'units','normalized');
+        s = get(l,'string');
+        v = get(l, 'visible');
+        p = get(l,'position');
+        t = get(l,'tag');
+        % Remove the UICONTROL
+        delete(l);
+        % Replace it with a TEXT object 
+        handles.(t) = text(p(1),p(2),s,'interpreter','latex', 'visible', v);
+    end
+    %=========================================
+    
+    %% --- DT PANEL --------------------------------------
+    handles.dtPanel = uipanel( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'dtPanel', ...
+        'Units', 'normalized', ...
+        'Position', [0.02 0.03 0.35 0.33], ...
+        'Title', 'Darboux Transformation', ...
+        'ShadowColor', [0.7 0.7 0.7]);
+    %=========================================
+    handles.xjLabel_lx = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'xjLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.35 0.58 0.05 0.12], ...
+        'FontSize', 10, ...
+        'String', '$x_j$', ...
+        'HorizontalAlignment', 'left');
+    handles.xjEdit = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'xjEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.41 0.58 0.21 0.12], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '[0, 0, 0, 0, 0]');
+    %=========================================
+    handles.tjLabel_lx = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'tjLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.03 0.58 0.05 0.12], ...
+        'FontSize', 10, ...
+        'String', '$t_j$', ...
+        'HorizontalAlignment', 'left');
+    handles.tjEdit = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'tjEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.12 0.58 0.21 0.12], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '[0, 0, 0, 0, 0]');
+    %=========================================
+    handles.aLabel_lx = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'aLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.35 0.85 0.03 0.12], ...
+        'FontSize', 10, ...
+        'String', '$a$', ...
+        'HorizontalAlignment', 'left');
+    handles.aEdit = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'aEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.41 0.85 0.21 0.12], ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '0.43');
+    %=========================================
+    handles.phfLabel = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'phfLabel', ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.03 0.25 0.05 0.12], ...
+        'FontSize', 9, ...
+        'String', 'PHF:');
+    handles.phfResultLabel = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'phfResultLabel', ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.12 0.25 0.21 0.12], ...
+        'String', '-');
+    %=========================================
+    handles.kEllipLabel_lx = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'kEllipLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.35 0.42 0.05 0.12], ...
+        'FontSize', 10, ...
+        'String', '$k$', ...
+        'HorizontalAlignment', 'left');       
+    handles.kEllipEdit = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'kEllipEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.41 0.42 0.21 0.12], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '0.1', ...
+        'Enable', 'off');
+    %=========================================
+    handles.xmaxLabel_lx = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'xmaxLabel_lx', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.21 0.85 0.0307443365695793 0.12], ...
+        'FontSize', 10, ...
+        'String', '$X$', ...
+        'HorizontalAlignment', 'left');
+    handles.xmaxEdit = uicontrol( ...
+        'Parent', handles.dtPanel', ...
+        'Tag', 'xmaxEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.25 0.85 0.0713128038897893 0.12], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '-10');
+    %=========================================
+    handles.ratioLabel = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'ratioLabel', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'FontSize', 10, ...
+        'Position', [0.03 0.71 0.0760517799352751 0.12], ...
+        'String', 'Ratio', ...
+        'HorizontalAlignment', 'left');
+    handles.ratioEdit = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'ratioEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.12 0.71 0.21 0.12], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '2');
+    handles.ratioInfoLabel_lx = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'ratioInfoLabel_lx', ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.35 0.71 0.27 0.118556701030928], ...
+        'FontSize', 10, ...
+        'String', '$\Omega_m = R_{m-1}\Omega_1$', ...
+        'TooltipString', 'Only usable when a is a scalar, this generates the remaining values of a.', ...
+        'HorizontalAlignment', 'left');
+    %=========================================
+    handles.orderEdit = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'orderEdit', ...
+        'Style', 'edit', ...
+        'Units', 'normalized', ...
+        'Position', [0.12 0.85 0.0713128038897893 0.120418848167539], ...
+        'FontSize', 10, ...
+        'BackgroundColor', [1 1 1], ...
+        'String', '2');  
+    handles.orderLabel = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'orderLabel', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.03 0.85 0.0760517799352751 0.118556701030928], ...
+        'FontSize', 10, ...
+        'String', 'Order', ...
+        'HorizontalAlignment', 'left');
+    %=========================================
+    handles.seedMenu = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'seedMenu', ...
+        'Style', 'popupmenu', ...
+        'Units', 'normalized', ...
+        'Position', [0.12 0.42 0.20127420775719 0.120436864153202], ...
+        'BackgroundColor', [1 1 1], ...
+        'String', {'Breather','Soliton','Cn','Dn'}, ...
+        'Callback', @seedMenu_Callback);
+    handles.seedLabel = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'seedLabel', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'text', ...
+        'Units', 'normalized', ...
+        'Position', [0.03 0.42 0.0760517799352751 0.118556701030928], ...
+        'FontSize', 9, ...
+        'String', 'Seed', ...
+        'HorizontalAlignment', 'left');
+    %=========================================
+    handles.runDTButton = uicontrol( ...
+        'Parent', handles.dtPanel, ...
+        'Tag', 'runDTButton', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.747163695299838 0.07 0.225283630470016 0.162303664921466], ...
+        'String', 'Run DT', ...
+        'Callback', @runDTButton_Callback);
+    %=========================================
+    handles.dtAxis = axes('parent',handles.dtPanel,'units','normalized','position',[0 0.06 1 1],'visible','off');
+    % Find all static text UICONTROLS whose 'Tag' ends with '_lx'
+    lbls = findobj(handles.dtPanel,'-regexp','tag','_lx*');
+    for i=1:length(lbls)
+        l = lbls(i);
+        % Get current text, position and tag
+        set(l,'units','normalized');
+        s = get(l,'string');
+        v = get(l, 'visible');
+        p = get(l,'position');
+        t = get(l,'tag');
+        % Remove the UICONTROL
+        delete(l);
+        % Replace it with a TEXT object 
+        handles.(t) = text(p(1),p(2),s,'interpreter','latex', 'visible', v);
+    end
+
+    %% --- DT REAL SPACE AXES ----------------------------
+    handles.analRealAxes = axes( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'analRealAxes', ...
+        'Units', 'normalized', ...
+        'Position', [0.41 0.06 0.25 0.415]);
+    % =========================================
+    handles.undockRealDT = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'undockRealDT', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.45 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'U', ...
+        'Callback', @undockRealDT_Callback);
+    handles.switchRealDT = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'switchRealDT', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.41 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'S', ...
+        'Callback', @switchRealDT_Callback);
+    handles.maximaDT = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'maximaDT', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.37 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'M', ...
+        'Callback', @maximaDT_Callback); 
+    %=========================================
+    
+    %% --- DT INVERSE SPACE AXES -------------------------
+    handles.analInvAxes = axes( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'analInvAxes', ...
+        'Units', 'normalized', ...
+        'Position', [0.715 0.06 0.25 0.415]);
+    % =========================================
+    handles.undockInvDT = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'undockInvDT', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.975 0.45 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'U', ...
+        'Callback', @undockInvDT_Callback);
+    handles.switchInvDT = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'switchInvDT', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.975 0.41 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'S', ...
+        'Callback', @switchInvDT_Callback);
+    %=========================================
+    
+    %% --- NUMERICAL REAL SPACE AXES ---------------------
+    handles.numRealAxes = axes( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'numRealAxes', ...
+        'Units', 'normalized', ...
+        'Position', [0.41 0.56 0.25 0.415]);
+    % =========================================
+    handles.undockRealNum = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'undockRealNum', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.95 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'U', ...
+        'Callback', @undockRealNum_Callback);
+    handles.switchRealNum = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'switchRealNum', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.91 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'S', ...
+        'Callback', @switchRealNum_Callback);
+    handles.maximaNum = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'maximaNum', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.87 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'M', ...
+        'Callback', @maximaNum_Callback);
+    handles.energyNum = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'energyNum', ...
+        'UserData', zeros(1,0), ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.67 0.83 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'E', ...
+        'Callback', @energyNum_Callback);
+    %=========================================
+    
+    %% --- NUMERICAL INVERSE SPACE AXES ------------------
+    handles.numInvAxes = axes( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'numInvAxes', ...
+        'Units', 'normalized', ...
+        'Position', [0.715 0.56 0.25 0.415]);
+    % =========================================
+    handles.undockInvNum = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'undockInvNum', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.975 0.95 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'U', ...
+        'Callback', @undockInvNum_Callback);
+    handles.switchInvNum = uicontrol( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'switchInvNum', ...
+        'Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [0.975 0.91 0.013 0.025], ...
+        'FontSize', 12, ...
+        'FontWeight', 'bold', ...
+        'String', 'S', ...
+        'Callback', @switchInvNum_Callback);
+    %=========================================
+    
+    %% --- TOOLBAR ---------------------------------------
+    handles.uitoolbar = uitoolbar( ...
+        'Parent', handles.main_GUI, ...
+        'Tag', 'uitoolbar');
+
 end
 
-% --- Executes during object creation, after setting all properties.
-function NEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to NEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+%% ---- CALL BACKS -----------------------------------------------
+function analParamView_Callback(hObject,evendata)          %#ok<INUSD>
+    analProp;
 end
 
-% --- Executes during object creation, after setting all properties.
-function tfEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to tfEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function analExportMenu_Callback(hObject,evendata)         %#ok<INUSD>
+    k = any(strcmp('PSI_anal',fieldnames(handles))); % Check if numerical data exists in memory
+    if ~k % If it doesn't, display error
+        errordlg('No DT data exists in memory, nothing to export.');
+    end
+    PSI = handles.PSI_anal;
+    x = handles.x_anal;
+    t = handles.t_anal;
+    exportData(PSI, x, t);
 end
 
-% --- Executes during object creation, after setting all properties.
-function LEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to LEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function menuPreferences_Callback(hObject,evendata)        %#ok<INUSD>
+    uiwait(preferences);
+    if exist('pref.mat', 'file') == 2
+        load('pref.mat', 'pref');
+    else
+        createDefaultPref();
+        load('pref.mat', 'pref');
+    end
+    handles.pref = pref;
 end
 
-% --- Executes during object creation, after setting all properties.
-function aEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to aEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function numExportMenu_Callback(hObject,evendata)          %#ok<INUSD>
+    k = any(strcmp('PSI_num',fieldnames(handles))); % Check if numerical data exists in memory
+    if ~k % If it doesn't, display error
+        errordlg('No numerical data exists in memory, nothing to export.');
+    end
+    PSI = handles.PSI_num;
+    x = handles.x_num;
+    t = handles.t_num;
+    exportData(PSI, x, t, handles);
 end
 
-% --- Executes on button press in LRadioButton.
-function LRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to LRadioButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function exportData(PSI, x, t)                                        
+    defaultName = [datestr(date, 'yyyymmdd'), '.mat'];
 
-% Hint: get(hObject,'Value') returns toggle state of LRadioButton
-set(handles.LEdit, 'Enable', 'on')
-set(handles.aLMultEdit, 'Enable', 'off')
+    extensions = {'*.mat',...
+     'MATLAB MAT file (*.mat)';
+     '*.csv', 'Comma Separate Values (*.csv)';...
+     '*.txt','Space-delimited TXT (*.txt)';...
+     '*.*',  'All Files (*.*)'};
 
+    [filename, pathname, index] = uiputfile(extensions, 'Save as', defaultName);
 
-% --- Executes on button press in aRadioButton.
-function aRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to aRadioButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+    if isequal(filename,0) || isequal(pathname,0) % Canceled
+       return;
+    else
+       fullfile = [pathname, '\', filename];
+       if index == 1 % mat
+           save(fullfile, 'PSI', 'x', 't');
+       elseif index == 2 %csv
+           full = [[NaN, x']; t PSI];
+           dlmwrite(fullfile,full,'delimiter',',','precision',handles.pref.dec)
+       elseif index == 3 % space-delimited txt
+           full = [[NaN, x']; t PSI];
+           dlmwrite(fullfile,full,'delimiter',' ','precision',handles.pref.dec)
+       else
+           error('Cant save in this extensions');
+       end
+    end
+end 
 
-% Hint: get(hObject,'Value') returns toggle state of aRadioButton
-set(handles.LEdit, 'Enable', 'off')
-set(handles.aLMultEdit, 'Enable', 'on')
-
-% --- Executes during object creation, after setting all properties.
-function potEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to potEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function undockRealNum_Callback(hObject,evendata)             %#ok<INUSD>
+    f = figure;
+    h = allchild(handles.numRealAxes);
+    copyobj(handles.numRealAxes,f); colormap('jet'); colorbar;
+    %title(' ');
+    if (size(h) == 1); % Density Plot mode
+        colorbar
+        set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
+    else
+        colorbar off;
+        set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
+    end
 end
 
-% --- Executes during object creation, after setting all properties.
-function parabolicEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to parabolicEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes on button press in cubicRadioButton.
-function cubicRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to cubicRadioButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of cubicRadioButton
-set(handles.potEdit, 'Enable', 'on')
-set(handles.parabolicEdit, 'Enable', 'off')
-set(handles.vOtherEdit, 'Enable', 'off')
-
-% --- Executes on button press in parabolicRadioButton.
-function parabolicRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to parabolicRadioButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of parabolicRadioButton
-set(handles.potEdit, 'Enable', 'off')
-set(handles.vOtherEdit, 'Enable', 'off')
-set(handles.parabolicEdit, 'Enable', 'on')
-
-% --- Executes during object creation, after setting all properties.
-function vOtherEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to vOtherEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes on button press in vOtherRadioButton.
-function vOtherRadioButton_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to vOtherRadioButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of vOtherRadioButton
-set(handles.potEdit, 'Enable', 'off')
-set(handles.vOtherEdit, 'Enable', 'on')
-set(handles.parabolicEdit, 'Enable', 'off')
-
-% --- Executes during object creation, after setting all properties.
-function iLabel1_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to handles.iLabel1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes during object creation, after setting all properties.
-function iParamEdit1_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to handles.iParamEdit1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes during object creation, after setting all properties.
-function edit12_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to edit12 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function psi0Listbox_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to psi0Listbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: listbox controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% CALLBACK OF INITIAL CONDITION LISTBOX. 
-% This callback handles hiding or enabling entry boxes depending on
-% what type of IC is enabled.
-function psi0Listbox_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to psi0Listbox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns psi0Listbox contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from psi0Listbox
-selection=hObject.Value;
-
-if (selection ~= 1)
-    handles.xjLabel.Visible = 'off';
-    handles.tjLabel.Visible = 'off';
-    handles.xjEdit.Visible = 'off';
-    handles.tjEdit.Visible = 'off';
-    handles.intensityEdit.Visible = 'off';
-    handles.intensityCheck.Visible = 'off';
-    handles.iCheck1.Visible = 'off';
-    handles.decimalsEdit.Visible = 'off';
-    handles.ratioEdit.Visible = 'off';
-    handles.ratioLabel.Visible = 'off';
-    handles.ratioInfo.Visible = 'off';
-end
-if (selection ~= 2)
-    handles.iParam1.Visible = 'on';
-    handles.iParamEdit1.Visible = 'on';
-    handles.xjEdit.Visible = 'off';
-    handles.tjEdit.Visible = 'off';
-    handles.intensityEdit.Visible = 'off';
-    handles.intensityCheck.Visible = 'off';
-end
-
-
-if (selection == 1)
-    handles.iLabel1.String = 'psi0=A0+\Sum_j 2*Aj*cos(j*w*x)';
-    handles.iLabel2.Visible = 'off';
-    handles.iParam1.String = 'Order';
-    handles.iParamEdit1.String = '2';
-    handles.iParam2.Visible = 'on';
-    handles.iParamEdit2.Visible = 'on';
-    handles.iParam2.String = 'T';
-    handles.iParamEdit2.String = '-10';
-    handles.intensityEdit.Visible = 'on';
-    handles.intensityCheck.Visible = 'on';
-    handles.iCheck1.Visible = 'on';
-    handles.decimalsEdit.Visible = 'on';
-    handles.ratioEdit.Visible = 'on';
-    handles.ratioLabel.Visible = 'on';
-    handles.ratioInfo.Visible = 'on';
-    handles.xjLabel.Visible = 'on';
-    handles.tjLabel.Visible = 'on';
-    handles.xjEdit.Visible = 'on';
-    handles.tjEdit.Visible = 'on';
-    handles.aEdit.Visible = 'on';
-    handles.aLabel.Visible = 'on';
-    handles.gCNLabel.Visible = 'on';
-    handles.gCNEdit.Visible = 'on';
-    handles.seedLabel.Visible = 'on';
-    handles.seedMenu.Visible = 'on';
-
-elseif (selection == 2)
-    handles.iLabel1.String = 'psi0=A0+2*A1*cos(w*x)';
-    handles.iParam1.Visible = 'off';
-    handles.iParamEdit1.Visible = 'off';
-    handles.iParam2.Visible = 'off';
-    handles.iParamEdit2.Visible = 'off';
-    handles.iCheck1.Visible = 'off';
-    handles.decimalsEdit.Visible = 'off';
-    handles.aEdit.Visible = 'on';
-    handles.aLabel.Visible = 'on';
-    handles.gCNLabel.Visible = 'off';
-    handles.gCNEdit.Visible = 'off';
-    handles.seedLabel.Visible = 'off';
-    handles.seedMenu.Visible = 'off';
-elseif (selection == 3)
-    handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)H_n(x/s)';
-    handles.iLabel2.String = 'H_n = nth order Hermite polynomial';
-    handles.iLabel3.Visible = 'off';
-    handles.iParam1.String = 's';
-    handles.iParam2.String = 'n';
-    handles.iParamEdit1.String = '5';
-    handles.iParamEdit2.String = '0';
-    handles.iParam2.Visible = 'on';
-    handles.iParamEdit2.Visible = 'on';
-    handles.iCheck1.Visible = 'off';
-    handles.decimalsEdit.Visible = 'off';
-    handles.iParam1.Visible = 'on';
-    handles.iParamEdit1.Visible = 'on';
-    handles.aEdit.Visible = 'off';
-    handles.aLabel.Visible = 'off';
-    handles.gCNLabel.Visible = 'off';
-    handles.gCNEdit.Visible = 'off';
-    handles.seedLabel.Visible = 'off';
-    handles.seedMenu.Visible = 'off';
-elseif (selection == 4)
-    handles.iLabel1.String = 'psi0=exp(-x^2/2/s^2)J_n(x)';
-    handles.iLabel2.String = 'J_n = nth order Bessel polynomial';
-    handles.iLabel3.Visible = 'off';
-    handles.iParam1.String = 's';
-    handles.iParam2.String = 'n';
-    handles.iParamEdit1.String = '10';
-    handles.iParamEdit2.String = '0';
-    handles.iParam2.Visible = 'on';
-    handles.iParamEdit2.Visible = 'on';
-    handles.iCheck1.Visible = 'off';
-    handles.decimalsEdit.Visible = 'off';
-    handles.iParam1.Visible = 'on';
-    handles.iParamEdit1.Visible = 'on';
-    handles.aEdit.Visible = 'off';
-    handles.aLabel.Visible = 'off';
-    handles.gCNLabel.Visible = 'off';
-    handles.gCNEdit.Visible = 'off';
-    handles.seedLabel.Visible = 'off';
-    handles.seedMenu.Visible = 'off';
-elseif (selection == 5) 
-    handles.iLabel1.String = 'psi0=exp(a*x)*Ai(x)';
-    handles.iLabel2.String = 'Ai(x) = Airy function';
-    handles.iLabel3.Visible = 'off';
-    handles.iParam1.String = 'a';
-    handles.iParam2.String = 'n';
-    handles.iParamEdit1.String = '0.1';
-    handles.iParamEdit2.String = '0';
-    handles.iParam2.Visible = 'off';
-    handles.iParamEdit2.Visible = 'off';
-    handles.iCheck1.Visible = 'off';
-    handles.decimalsEdit.Visible = 'off';
-    handles.iParam1.Visible = 'on';
-    handles.iParamEdit1.Visible = 'on';
-    handles.aEdit.Visible = 'off';
-    handles.aLabel.Visible = 'off';
-    handles.gCNLabel.Visible = 'off';
-    handles.gCNEdit.Visible = 'off';
-    handles.seedLabel.Visible = 'off';
-    handles.seedMenu.Visible = 'off';
-end
-
-% --- Executes during object creation, after setting all properties.
-function iParamEdit2_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to handles.iParamEdit2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes during object creation, after setting all properties.
-function orderBox_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to orderBox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes during object creation, after setting all properties.
-function aLMultEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to aLMultEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function aLMultEdit_Callback(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to aLMultEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes on button press in iCheck1.
-function iCheck1_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to iCheck1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-if hObject.Value == 1
-    handles.decimalsEdit.Enable = 'on';
-else
-    handles.decimalsEdit.Enable = 'off';
-end
- 
-% --- Executes on button press in analSwitch.
-function analSwitch_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to analSwitch (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-pref = handles.pref;
-PSI = handles.PSI_anal;
-x = handles.x_anal;
-t = handles.t_anal;
-if strcmp(handles.analPlotMode, 'density'); % Axes are in density plot mode
-    nlsePlot(abs(PSI).^pref.pwr, x, t, 1, 1, handles.analRealAxes, '3D');
-    handles.analPlotMode = '3D';
-else
-    nlsePlot(abs(PSI).^pref.pwr, x, t, 1, 1, handles.analRealAxes, 'density');
-    handles.analPlotMode = 'density';
-end
-title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
-guidata(hObject, handles);
-
-% --- Executes on button press in numSwitch.
-function numSwitch_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to numSwitch (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-pref = handles.pref;
-PSI = handles.PSI_num;
-x = handles.x_num;
-t = handles.t_num;
-Nx = length(x);
-Nt = length(t);
-if strcmp(handles.numPlotMode, 'density'); % Axes are in density plot mode
-    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/1000), ceil(Nx/256), handles.numRealAxes, '3D');
-    handles.numPlotMode = '3D';
-else
-    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/1000), ceil(Nx/256), handles.numRealAxes, 'density');
-    handles.numPlotMode = 'density';
-end
-title(sprintf('Numerical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
-guidata(hObject, handles);
-
-% --- Executes on button press in undockDT1.
-function undockDT1_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to undockDT1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-f = figure;
-h = allchild(handles.analRealAxes);
-copyobj(handles.analRealAxes,f); colormap('jet'); colorbar;
-%title(' ');
-if (size(h) == 1); % Density Plot mode
-    colorbar
+function undockInvDT_Callback(hObject,evendata)              %#ok<INUSD>
+    f = figure;
+    leg = legend(handles.analInvAxes);
+    if ~isempty(leg)
+        copyobj([leg, handles.analInvAxes],f);
+    else
+        copyobj(handles.analInvAxes,f);
+        colorbar; colormap('jet');
+    end
     set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
-else
-    colorbar off;
+end
+
+function undockInvNum_Callback(hObject,evendata)             %#ok<INUSD>
+    f = figure;
+    leg = legend(handles.numInvAxes);
+    if ~isempty(leg)
+        copyobj([leg, handles.numInvAxes],f);
+    else
+        copyobj(handles.numInvAxes,f);
+        colorbar; colormap('jet');
+    end
     set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
 end
 
-% --- Executes on button press in undockDT2.
-function undockDT2_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to undockDT2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-f = figure;
-leg = legend(handles.analInverseAxes);
-if ~isempty(leg)
-    copyobj([leg, handles.analInverseAxes],f);
-else
-    copyobj(handles.analInverseAxes,f);
-    colorbar; colormap('jet');
-end
-set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
-
-% --- Executes on button press in undockNum1.
-function undockNum1_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to undockNum1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-f = figure;
-h = allchild(handles.numRealAxes);
-copyobj(handles.numRealAxes,f); colormap('jet'); colorbar;
-%title(' ');
-if (size(h) == 1); % Density Plot mode
-    colorbar
-    set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
-else
-    colorbar off;
-    set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
+function undockRealDT_Callback(hObject,evendata)              %#ok<INUSD>
+    f = figure;
+    h = allchild(handles.analRealAxes);
+    copyobj(handles.analRealAxes,f); colormap('jet'); colorbar;
+    %title(' ');
+    if (size(h) == 1); % Density Plot mode
+        colorbar
+        set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
+        %colormap(jet(256)); colorbar off; axis off; title(''); set(gca,'position',[0 0 1 1],'units','normalized'); caxis([0, 3])
+    else
+        colorbar off;
+        set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
+        colormap(jet(256));
+    end
 end
 
-% --- Executes on button press in undockNum2.
-function undockNum2_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to undockNum2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-f = figure;
-leg = legend(handles.numInverseAxes);
-if ~isempty(leg)
-    copyobj([leg, handles.numInverseAxes],f);
-else
-    copyobj(handles.analInverseAxes,f);
-    colorbar; colormap('jet');
-end
-set(gca, 'Position', [0.1300    0.1100    0.7750    0.8150]);
-
-% --- Executes during object creation, after setting all properties.
-function xjEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to xjEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function switchRealDT_Callback(hObject,evendata)             %#ok<INUSD>
+    pref = handles.pref;
+    if ~isfield(handles, 'PSI_anal')
+        return;
+    end
+    PSI = handles.PSI_anal;
+    x = handles.x_anal;
+    t = handles.t_anal;
+    if strcmp(handles.analPlotMode, 'density'); % Axes are in density plot mode
+        nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(pref.Nt/500), ceil(pref.Nx/500), handles.analRealAxes, '3D');
+        handles.analPlotMode = '3D';
+    else
+        nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(pref.Nt/500), ceil(pref.Nx/500), handles.analRealAxes, 'density');
+        handles.analPlotMode = 'density';
+    end
+    title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
+    guidata(hObject, handles);
 end
 
-% --- Executes during object creation, after setting all properties.
-function tjEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to tjEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function switchRealNum_Callback(hObject,evendata)              %#ok<INUSD>
+    pref = handles.pref;
+    if ~isfield(handles, 'PSI_num')
+        return;
+    end
+    PSI = handles.PSI_num;
+    x = handles.x_num;
+    t = handles.t_num;
+    Nx = length(x);
+    Nt = length(t);
+    if strcmp(handles.numPlotMode, 'density'); % Axes are in density plot mode
+        nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/500), ceil(Nx/500), handles.numRealAxes, '3D');
+        handles.numPlotMode = '3D';
+    else
+        nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/500), ceil(Nx/500), handles.numRealAxes, 'density');
+        handles.numPlotMode = 'density';
+    end
+    title(sprintf('Numerical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
+    guidata(hObject, handles);
 end
 
-% --- Executes during object creation, after setting all properties.
-function decimalsEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to decimalsEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes during object creation, after setting all properties.
-function uitable1_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to uitable1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-set(hObject, 'Data', cell(6, 1));
-set(hObject, 'RowName', {'A0', 'A1', 'A2', 'A3', 'A4', 'A5'});
-
-% --- Executes on button press in pubSizeButton.
-function pubSizeButton_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to pubSizeButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-ax = handles.numRealAxes;
-axes(ax);
-maxY = ax.YLim(2);
-ylim([maxY/2-2, maxY/2+2]);
-maxX = ax.XLim(2);
-if maxX > 4;
-    xlim([-4, 4]);
-end
-title('');
-
-% --------------------------------------------------------------------
-function menuPreferences_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to menuPreferences (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-Preferences;
-load preferences.mat;
-handles.pref = pref;
-guidata(hObject, handles);
-
-% --- Executes during object creation, after setting all properties.
-function intensityEdit_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to intensityEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function potMenu_Callback(~, ~, handles) %#ok<DEFNU>
-% hObject    handle to potMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns potMenu contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from potMenu
-str = get(handles.potMenu, 'String');
-val = get(handles.potMenu,'Value');
-% Set current data to the selected data set.
-switch str{val};
-case 'g*|psi|^2 (cubic)' % User selects peaks.
-    handles.potEdit.String = num2str(-1);
-case 'alpha*x^2 (parabolic)' % User selects membrane.
-    handles.potEdit.String = num2str(0.3);
-end
-
-% --- Executes during object creation, after setting all properties.
-function potMenu_CreateFcn(hObject, ~, ~) %#ok<DEFNU>
-% hObject    handle to potMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-% --- Executes on button press in pushbutton11.
-function pushbutton11_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to pushbutton11 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-ax = handles.numInverseAxes;
-axes(ax);
-h = allchild(ax);
-if handles.SpectrumPubMode
-CO =     [         0    0.4470    0.7410;
-    0.8500    0.3250    0.0980;
-    0.9290    0.6940    0.1250;
-    0.4940    0.1840    0.5560;
-    0.4660    0.6740    0.1880;
-    0.3010    0.7450    0.9330;
-    0.6350    0.0780    0.1840];
-    handles.SpectrumPubMode = 0;
+function switchInvNum_Callback(hObject,evendata)       %#ok<INUSD>
+    pref = handles.pref;
+    if ~isfield(handles, 'PSI_num')
+        return;
+    end
+    PSI = handles.PSI_num;
+    t = handles.t_num;
+    k = handles.k_num;
+    if strcmp(handles.numFourierPlotMode, 'lines'); % Axes are in density plot mode
+        fourierPlot(PSI, t, k, pref.fourierLines, pref.aLMult, handles.numInvAxes, 'density');
+        handles.numFourierPlotMode = 'density';
+    else
+        fourierPlot(PSI, t, k, pref.fourierLines, pref.aLMult, handles.numInvAxes, 'lines');
+        handles.numFourierPlotMode = 'lines';
+    end
     title('Numerical');
-    width = 1;
-    maxX = ax.XLim(2);
-    minX = ax.XLim(1);
-    xlim([0, minX + maxX]);
-    ylim ([-10, 2]);
-    ax.XTick = 0:(minX+maxX)/4:minX+maxX;
-    ax.YTick = -10:2:2;
-else
-CO=[0.0314    0.1882    0.4196; 
-    0         0.5       0.1412;  
-    0.8941    0.1020    0.1098; 
-    1.0000    0.4980    0     ; 
-    0.3059    0.7020    0.8275;
-    0.6824    0.0039    0.4941;
-    0.4980         0         0];
-    handles.SpectrumPubMode = 1;
-    title('');
-    width = 1.5;
-    ylim([-8, 2]);
-    maxX = ax.XLim(2);
-    xlim([maxX/2-2, maxX/2+2]);
-    ax.XTick = maxX/2-2:1:maxX/2+2;
-    ax.YTick = -8:2:2;
 end
 
-nLines = length(h);
-for i = 1:nLines
-	h(i).Color = CO(nLines-i+1, :);
-    h(i).LineWidth = width;
+function switchInvDT_Callback(hObject,evendata)      %#ok<INUSD>
+    pref = handles.pref;
+    if ~isfield(handles, 'PSI_anal')
+        return;
+    end
+    PSI = handles.PSI_anal;
+    t = handles.t_anal;
+    k = handles.k_anal;
+    if strcmp(handles.analFourierPlotMode, 'lines'); % Axes are in density plot mode
+        fourierPlot(PSI, t, k, pref.fourierLines, pref.aLMult, handles.analInvAxes, 'density');
+        handles.analFourierPlotMode = 'density';
+    else
+        fourierPlot(PSI, t, k, pref.fourierLines, pref.aLMult, handles.analInvAxes, 'lines');
+        handles.analFourierPlotMode = 'lines';
+    end
+    title('Analytical');
 end
 
-guidata(hObject,handles)
-
-% --------------------------------------------------------------------
-function vidSettings_Callback(~, ~, ~) %#ok<DEFNU>
-% hObject    handle to vidSettings (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-videoSettings
-
-% --- Executes on button press in numericalMaxima.
-function numericalMaxima_Callback(hObject, ~, handles)
-% hObject    handle to numericalMaxima (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-handles.maximaType = 1;     % This indicates function should use numerical data to compute maxima
-guidata(hObject, handles);
-maximaDisplay;
-
-% --- Executes on button press in analyticalMaxima.
-function analyticalMaxima_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    handle to analyticalMaxima (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-handles.maximaType = 2;         % This indicates function should use DT data to compute maxima
-guidata(hObject, handles);
-maximaDisplay;
-
-% --------------------------------------------------------------------
-function menuEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to menuEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-function viewMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to viewMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --------------------------------------------------------------------
-function analParamView_Callback(hObject, eventdata, handles)
-% hObject    handle to analParamView (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-analProp;
-
-
-% --- Executes during object creation, after setting all properties.
-function ratioEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to ratioEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function maximaNum_Callback(hObject,evendata)        %#ok<INUSD>
+    if isfield(handles, 'PSI_num')
+        maximaDisplay(handles.PSI_num, handles.x_num, handles.t_num);
+    else
+        uiwait(warndlg('No numerical data exists in memory. Cannot compute maxima.'))
+    end
 end
 
-function edit22_Callback(hObject, eventdata, handles)
-% hObject    handle to edit22 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function energyNum_Callback(hObject,evendata)              %#ok<INUSD>
+    g = str2double(handles.potEdit.String);
+    Nx = str2double(handles.NtEdit.String);
+    dt = str2double(handles.dxEdit.String);
+    if isfield(handles, 'PSI_num')
+        [dE, E, ke, pe] = energy(handles.PSI_num, handles.t_num, handles.k_num.^2, Nx, g, dt);
+    else
+        uiwait(warndlg('No numerical data exists in memory. Cannot compute energy.'))
+        return;
+    end
+    figure;
+    plot(handles.t_num, dE, 'LineWidth', 1.5); title('dE'); title('Integrated Energy Error');
+    xlabel('t'); ylabel('dE'); grid on;
 
-% Hints: get(hObject,'String') returns contents of edit22 as text
-%        str2double(get(hObject,'String')) returns contents of edit22 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit22_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit22 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+    figure;
+    plot(handles.t_num, E, 'LineWidth', 1.5); title('Energy');
+    hold on;
+    plot(handles.t_num, ke, 'LineWidth', 1.5);  
+    hold on;
+    plot(handles.t_num, pe, 'LineWidth', 1.5);
+    legend('E', 'T', 'V', 'Location', 'Best');
+    xlabel('t'); ylabel('E'); grid on;
 end
 
-function edit23_Callback(hObject, eventdata, handles)
-% hObject    handle to edit23 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of edit23 as text
-%        str2double(get(hObject,'String')) returns contents of edit23 as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function edit23_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit23 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function maximaDT_Callback(hObject,evendata)       %#ok<INUSD>
+    if isfield(handles, 'PSI_anal')
+        maximaDisplay(handles.PSI_anal, handles.x_anal, handles.t_anal);
+    else
+        uiwait(warndlg('No DT data exists in memory. Cannot compute maxima.'))
+    end
 end
 
-
-% --- Executes on button press in numEnergy.
-function numEnergy_Callback(hObject, eventdata, handles)
-% hObject    handle to numEnergy (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-g = str2double(handles.potEdit.String);
-Nx = str2double(handles.NEdit.String);
-dt = str2double(handles.dtEdit.String);
-[dE, E, ke, pe] = energy(handles.PSI_num, handles.t_num, handles.k_num.^2, Nx, g, dt);
-figure;
-plot(handles.t_num, dE, 'LineWidth', 1.5); title('dE'); title('Integrated Energy Error');
-xlabel('t'); ylabel('dE'); grid on;
-
-figure;
-plot(handles.t_num, E, 'LineWidth', 1.5); title('Energy');
-hold on;
-plot(handles.t_num, ke, 'LineWidth', 1.5);  
-hold on;
-plot(handles.t_num, pe, 'LineWidth', 1.5);
-legend('E', 'T', 'V', 'Location', 'Best');
-xlabel('t'); ylabel('E'); grid on;
-
-
-% --------------------------------------------------------------------
-function pubModeSettings_Callback(hObject, eventdata, handles)
-% hObject    handle to pubModeSettings (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-pubModeSettings;
-
-% --- Executes on selection change in seedMenu.
-function seedMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to seedMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-str = hObject.String;
-val = hObject.Value;
-seed = str{val};
-switch lower(seed)
-    case {'breather', 'soliton'}
-        handles.gCNEdit.Enable = 'off';
-    case {'cn', 'dn'}
-        handles.gCNEdit.Enable = 'on';
-    otherwise
-        error('Unknown Seed.');
+function LRadioButton_Callback(hObject,evendata)           %#ok<INUSD>
+    set(handles.LEdit, 'Enable', 'on')
+    set(handles.aLMultEdit, 'Enable', 'off')
 end
 
-% --- Executes during object creation, after setting all properties.
-function seedMenu_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to seedMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: popupmenu controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function aRadioButton_Callback(hObject,evendata)           %#ok<INUSD>
+    set(handles.LEdit, 'Enable', 'off')
+    set(handles.aLMultEdit, 'Enable', 'on')
 end
 
-% --- Executes during object creation, after setting all properties.
-function gCNEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to gCNEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+function approxAjCheck_Callback(hObject,evendata)          %#ok<INUSD>
+    if hObject.Value == 1
+        handles.decimalsEdit.Enable = 'on';
+    else
+        handles.decimalsEdit.Enable = 'off';
+    end
 end
 
+function psi0Listbox_Callback(hObject,evendata)            %#ok<INUSD>
+    selection=hObject.Value;
 
-% --- Executes on button press in runDTButton.
-function runDTButton_Callback(hObject, eventdata, handles)
-% hObject    handle to runDTButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-order =  str2double(handles.iParamEdit1.String);
-a = eval(handles.aEdit.String); 
-L = pi/sqrt(1-2*a(1));                        %#ok<NASGU> % Read length L (will be used in shifts)    
-lambda = sqrt(8*a(1)*(1-2*a(1)));             %#ok<NASGU> % Growth factor (used in shifts)
-Omega = 2*sqrt(1-2*a(1));                     %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
-xj = eval(handles.xjEdit.String);
-tj = eval(handles.tjEdit.String);
-T = str2double(handles.iParamEdit2.String);
-R = eval(handles.ratioEdit.String);
-g = eval(handles.gCNEdit.String);
-pref = handles.pref;
-str = get(handles.seedMenu, 'String');
-val = get(handles.seedMenu,'Value');
-seed = str{val};
-[PSI, x, t] = calcDarboux(order, a, R, T, g, seed, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % FIX PLEASE
+    if (selection ~= 2)
+        handles.approxAjCheck.Visible = 'off';
+        handles.decimalsEdit.Visible = 'off';
+    end
 
-peak = peakPredict(a, order, R, seed, g);
-handles.peakLabel.String = num2str(abs(peak).^handles.pref.pwr);
+    if (selection ~= 3)
+        handles.aManABLabel_lx.Visible = 'off';
+        handles.aManABEdit.Visible = 'off';
+    end
 
-nlsePlot(abs(PSI).^pref.pwr, x, t, 1, 1, handles.analRealAxes, pref.plotType);
-%k = 2*(-pref.Nx/2:1:pref.Nx/2-1)'*pi/2/max(x);          % Wave number
-k = (-pref.Nx/2:pref.Nx/2-1);
-fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.analInverseAxes, pref.fourierPlotType);
+    if (selection ~= 5 || selection ~= 4)
+        handles.nHermBesLabel_lx.Visible = 'off';
+        handles.sHermBesLabel_lx.Visible = 'off';
+        handles.nHermBesEdit.Visible = 'off';
+        handles.sHermBesEdit.Visible = 'off';
+    end
 
-axes(handles.analRealAxes); title(sprintf('Analytical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
-axes(handles.analInverseAxes); title('Analytical');
+    if (selection ~= 6)
+        handles.aAiryLabel_lx.Visible = 'off';
+        handles.aAiryEdit.Visible = 'off';
+    end
 
-handles.analPlotMode = pref.plotType;
-handles.analFourierPlotMode = pref.fourierPlotType;
-handles.PSI_anal = PSI;                                 % Save result to handles struct
-handles.x_anal = x;
-handles.t_anal = t;
-handles.order = order;
-handles.k_anal = k;
-guidata(hObject, handles);
+    if (selection == 1)
+        handles.psi0EqLabel_lx.String = '$\psi_0 = DT(x=X,t)$';
 
-% --- Executes on key press with focus on main_GUI and none of its controls.
-function main_GUI_KeyPressFcn(hObject, eventdata, handles)
-% hObject    handle to main_GUI (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
-%	Key: name of the key that was pressed, in lower case
-%	Character: character interpretation of the key(s) that was pressed
-%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
-% handles    structure with handles and user data (see GUIDATA)
-switch eventdata.Key
-  case 'return'
-    runDTButton_Callback(hObject, eventdata, handles);
+    elseif (selection == 2) 
+        handles.psi0EqLabel_lx.String = '$\psi_0=A_0+2\sum_m^M A_m\cos(m\Omega x)$';
+        handles.approxAjCheck.Visible = 'on';
+        handles.decimalsEdit.Visible = 'on';
+
+    elseif (selection == 3) 
+        handles.aManABLabel_lx.Visible = 'on';
+        handles.aManABEdit.Visible = 'on';
+        handles.psi0EqLabel_lx.String = '$\psi_0=A_0+2\sum_m^M A_m\cos(m\Omega x)$';
+
+    elseif (selection == 4) % Hermite
+        handles.nHermBesLabel_lx.Visible = 'on';
+        handles.sHermBesLabel_lx.Visible = 'on';
+        handles.nHermBesEdit.Visible = 'on';
+        handles.sHermBesEdit.Visible = 'on';       
+        handles.psi0EqLabel_lx.String = '$\psi_0=\exp(-x^2/2s^2)H_n(x/s)$';
+
+    elseif (selection == 5) % Bessel
+        handles.nHermBesLabel_lx.Visible = 'on';
+        handles.sHermBesLabel_lx.Visible = 'on';
+        handles.nHermBesEdit.Visible = 'on';
+        handles.sHermBesEdit.Visible = 'on';       
+        handles.psi0EqLabel_lx.String = '$\psi_0=\exp(-x^2/2s^2)J_n(x)$';
+
+    elseif (selection == 6) 
+        handles.aAiryLabel_lx.Visible = 'on';
+        handles.aAiryEdit.Visible = 'on';      
+        handles.psi0EqLabel_lx.String = '$\psi_0=\exp(ax)Ai(x)$';
+    end
+
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% RUN BUTTON CALL BACK
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% --- Executes on button press in runButton.
-function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
-% hObject    han    5dle to runButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-    dt = str2double(handles.dtEdit.String);                    % Read dt from edit
-    Nx =  str2double(handles.NEdit.String);                    % read Nx from edit
-    Tmax = str2double(handles.tfEdit.String);                  % Read Tmax from edit
-    Nt = Tmax/dt;                                              % Calculate Nt
-    mult = str2double(handles.aLMultEdit.String);              % Read mult from edit box
+function potMenu_Callback(hObject,evendata)                %#ok<INUSD>
+    str = hObject.String;
+    val = hObject.Value;
+    switch str{val};
+    case 'g*|psi|^2 (cubic)' % User selects peaks.
+        handles.potEdit.String = num2str(-1);
+    case 'alpha*x^2 (parabolic)' % User selects membrane.
+        handles.potEdit.String = num2str(0.3);
+    end
+end
+
+function seedMenu_Callback(hObject,evendata)               %#ok<INUSD>
+    str = hObject.String;
+    val = hObject.Value;
+    seed = str{val};
+    switch lower(seed)
+        case {'breather', 'soliton'}
+            handles.kEllipEdit.Enable = 'off';
+        case {'cn', 'dn'}
+            handles.kEllipEdit.Enable = 'on';
+        otherwise
+            error('Unknown Seed.');
+    end
+end
+
+function runDTButton_Callback(hObject,evendata)            %#ok<INUSD>
+    disp('Calculating DT:');
+    order =  str2double(handles.orderEdit.String);
+    a = eval(handles.aEdit.String); 
+    L = pi/sqrt(1-2*a(1));                        %#ok<NASGU> % Read length L (will be used in shifts)    
+    lambda = sqrt(8*a(1)*(1-2*a(1)));             %#ok<NASGU> % Growth factor (used in shifts)
+    Omega = 2*sqrt(1-2*a(1));                     %#ok<NASGU> % Fundamental wavenumber (used in shifts)  
+    xj = eval(handles.tjEdit.String); % Note that the handles are flipped
+    tj = eval(handles.xjEdit.String);
+    T = str2double(handles.xmaxEdit.String);
+    R = eval(handles.ratioEdit.String);
+    g = eval(handles.kEllipEdit.String);
+    pref = handles.pref;
+    str = get(handles.seedMenu, 'String');
+    val = get(handles.seedMenu,'Value');
+    seed = str{val};
+    [PSI, x, t] = calcDarboux(order, a, R, T, g, seed, xj, tj, pref.Nx, pref.Nt, pref.Lmode, pref.L, pref.aLMult);  % FIX PLEASE
+
+    peak = peakPredict(a, order, R, seed, g);
+    handles.phfResultLabel.String = num2str(abs(peak).^pref.pwr);
+
+    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(pref.Nt/500), ceil(pref.Nx/1000), handles.analRealAxes, pref.plotType);
+    %k = 2*(-pref.Nx/2:1:pref.Nx/2-1)'*pi/2/max(x);          % Wave number
+    k = (-pref.Nx/2:pref.Nx/2-1);
+    fourierPlot(PSI, t, k, pref.fourierLines, pref.aLMult, handles.analInvAxes, pref.fourierPlotType);
+
+    axes(handles.analRealAxes); title(sprintf('Analytical. Max = %.5f', max(max(abs(PSI).^pref.pwr))));
+    axes(handles.analInvAxes); title('Analytical');
+
+    handles.analPlotMode = pref.plotType;
+    handles.analFourierPlotMode = pref.fourierPlotType;
+    handles.PSI_anal = PSI;                                 % Save result to handles struct
+    handles.x_anal = x;
+    handles.t_anal = t;
+    handles.order = order;
+    handles.k_anal = k;
+    disp('Done');
+    %sound(handles.y);
+end
+
+function runButton_Callback(hObject,evendata)              %#ok<INUSD>
+    dt = str2double(handles.dxEdit.String);            % Read dt from edit
+    Nx =  str2double(handles.NtEdit.String);           % read Nx from edit
+    Tmax = str2double(handles.xfEdit.String);          % Read Tmax from edit
+    Nt = Tmax/dt;                                      % Calculate Nt
+    mult = str2double(handles.aLMultEdit.String);      % Read mult from edit box
     R = eval(handles.ratioEdit.String);
     a = eval(handles.aEdit.String); 
-    
+
     if strcmp(handles.LEdit.Enable, 'on')
+        mode = 'manual';
         L = str2double(handles.LEdit.String);
     else
+        mode = 'periodic';
         [~, D] = rat(R);
         if ~imag(a) % If parameter 'a' is used.
             aa = a(1); 
@@ -987,33 +1237,44 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
         L = D*mult*pi/sqrt(1-2*aa);     % Periodic length
         Omega = 2*sqrt(1-2*aa);      % Principal wave number
     end
-        
-    xj = eval(handles.xjEdit.String);
-    tj = eval(handles.tjEdit.String);
-    
+
+    xj = eval(handles.tjEdit.String); % Note that the handles are flipped
+    tj = eval(handles.xjEdit.String);
+
     dx = L/Nx;                             % Spatial step size
     x = (-Nx/2:1:Nx/2-1)'*dx;
-    
+
     % Determine the selected data set.
     str = get(handles.potMenu, 'String');
     val = get(handles.potMenu,'Value');
     % Set current data to the selected data set.
-    switch str{val};
-    case 'g*|psi|^2 (cubic)' % Cubic NLSE
-        g = str2double(handles.potEdit.String);
-        V = @(psi, x) (g*abs(psi).^2);
-    case 'alpha*x^2 (parabolic)' % Parabolic SE
-        alpha = str2double(handles.potEdit.String);
-        V = @(psi, x) 1/2*alpha*x.^2;
+    switch str{val}
+        case 'g*|psi|^2 (cubic)' % Cubic NLSE
+            g = str2double(handles.potEdit.String);
+            V = @(psi, x) (g*abs(psi).^2);
+        case 'alpha*x^2 (parabolic)' % Parabolic SE
+            alpha = str2double(handles.potEdit.String);
+            V = @(psi, x) 1/2*alpha*x.^2;
     end
-    
+
     psi0_selection = handles.psi0Listbox.Value;
-    
-    if (psi0_selection == 1) % THIS SHOULD BE MOVED TO GEN COEFF!!!
-        order =  str2double(handles.iParamEdit1.String);
-        T = str2double(handles.iParamEdit2.String);
+
+    if (psi0_selection == 1) % Pure DT
+        order =  str2double(handles.orderEdit.String);
+        T = str2double(handles.xmaxEdit.String);
         R = eval(handles.ratioEdit.String);
-        g = eval(handles.gCNEdit.String);
+        g = eval(handles.kEllipEdit.String);
+        str = get(handles.seedMenu, 'String');
+        val = get(handles.seedMenu,'Value');
+        seed = str{val};
+        [psi_0, ~, ~, L] = calcDarboux(order, a, R, T, g, seed, xj, tj, Nx, 0, mode, L, mult);
+        psi_0 = psi_0.';
+
+    elseif (psi0_selection == 2) % THIS SHOULD BE MOVED TO GEN COEFF!!!
+        order =  str2double(handles.orderEdit.String);
+        T = str2double(handles.xmaxEdit.String);
+        R = eval(handles.ratioEdit.String);
+        g = eval(handles.kEllipEdit.String);
         str = get(handles.seedMenu, 'String');
         val = get(handles.seedMenu,'Value');
         seed = str{val};
@@ -1023,19 +1284,19 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
         else
             R = [1, R];
         end
-        [A0, A] = genCoeff(x_dt, psi_dt, a, order, R, 1, handles.uipanel2, handles.iCheck1.Value);
-             
+        [A0, A] = genCoeff(x_dt, psi_dt, a, order, R, 0, 6969, handles.approxAjCheck.Value);
+
         psi_0 = A0;
         for i=1:order
             psi_0 = psi_0 + 2*A(i)*cos(R(i)*Omega*x);
         end
-%         norm = dx*(psi_0')*(psi_0)/L;
-%         disp(['Norm is: ', num2str(norm)]);
-        handles.uitable1.Data = [A0, A].';
-        
-    elseif (psi0_selection == 2)
-        
-        A = handles.uitable1.Data;
+    %         norm = dx*(psi_0')*(psi_0)/L;
+    %         disp(['Norm is: ', num2str(norm)]);
+        handles.coeffTable.Data = [A0, A].';
+
+    elseif (psi0_selection == 3)
+
+        A = handles.coeffTable.Data;
         if iscell(A)
             for i = 1:length(A)
                 if isempty(A{i})
@@ -1047,32 +1308,33 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
             A = B.';
         end
         A = A(2:end);
-        
+
         A02 = 1;
         for i = 1:length(A)
             A02 = A02 - 2*abs(A(i))^2;
         end
         A0 = sqrt(A02);
-        
+
         psi_0 = A0;
         for i=1:length(A)
-            psi_0 = psi_0 + 2*A(i)*cos(R(i)*Omega*x);
+            %psi_0 = psi_0 + 2*A(i)*cos(R(i)*Omega*x);
+            psi_0 = psi_0 + 2*A(i)*cos(i*Omega*x);
         end
-        handles.uitable1.Data = [A0; A];
-    elseif (psi0_selection == 3)
-        s = str2double(handles.iParamEdit1.String);
-        n = str2double(handles.iParamEdit2.String);
-        psi_0 = exp(-x.^2/2/s^2).*hermiteH(n, x/s);
+        handles.coeffTable.Data = [A0; A];
     elseif (psi0_selection == 4)
-        s = str2double(handles.iParamEdit1.String);
-        n = str2double(handles.iParamEdit2.String);
-        psi_0 = exp(-x.^2/2/s^2).*besselj(n, x);
+        s = str2double(handles.sHermBesEdit.String);
+        n = str2double(handles.nHermBesEdit.String);
+        psi_0 = exp(-x.^2/2/s^2).*hermiteH(n, x/s);
     elseif (psi0_selection == 5)
-        a = str2double(handles.iParamEdit1.String);
+        s = str2double(handles.sHermBesEdit.String);
+        n = str2double(handles.nHermBesEdit.String);
+        psi_0 = exp(-x.^2/2/s^2).*besselj(n, x);
+    elseif (psi0_selection == 6)
+        a = str2double(handles.aAiryEdit.String);
         psi_0 = exp(a*x).*airy(x);
     end
-    
-    orderSelection = handles.orderBox.Value;
+
+    orderSelection = handles.algBox.Value;
     if orderSelection == 1
         method = 'T1';
     elseif orderSelection == 2
@@ -1093,139 +1355,23 @@ function runButton_Callback(hObject, ~, handles) %#ok<DEFNU>
     [PSI, x, t, k] = solve(dt, Nx, Tmax, L, mult, V, psi_0, method); 
     handles.k_num = k;
 
-%    initialPlot(PSI(1, :), x, handles.axes1);
+    %    initialPlot(PSI(1, :), x, handles.axes1);
     pref = handles.pref;
-    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/1000), ceil(Nx/256), handles.numRealAxes, pref.plotType);
+    nlsePlot(abs(PSI).^pref.pwr, x, t, ceil(Nt/500), ceil(Nx/500), handles.numRealAxes, pref.plotType);
     k = (-Nx/2:Nx/2-1);
-    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.numInverseAxes, pref.fourierPlotType);
-  
+    fourierPlot(PSI, t, k, pref.fourierLines, pref.aLMult, handles.numInvAxes, pref.fourierPlotType);
+
     axes(handles.numRealAxes); title(sprintf('Numerical. Max = %.3f', max(max(abs(PSI).^pref.pwr))));
-    axes(handles.numInverseAxes); title('Numerical'); 
+    axes(handles.numInvAxes); title('Numerical'); 
     handles.PSI_num = PSI;           % Save result to handles structure.
     handles.x_num = x;
     handles.t_num = t;
     handles.numPlotMode = pref.plotType;
     handles.numFourierPlotMode = pref.fourierPlotType;
-    
+
     handles.SpectrumPubMode = 0;
     handles.IntensityPubMode = 0;
-    guidata(hObject,handles)
 
-
-% --------------------------------------------------------------------
-function fileMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to fileMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% --------------------------------------------------------------------
-function analExportMenu_Callback(hObject, eventdata, handles)
-k = any(strcmp('PSI_anal',fieldnames(handles))); % Check if numerical data exists in memory
-if ~k % If it doesn't, display error
-    errordlg('No DT data exists in memory, nothing to export.');
-end
-PSI = handles.PSI_anal;
-x = handles.x_anal;
-t = handles.t_anal;
-exportData(PSI, x, t, handles);
-
-% --------------------------------------------------------------------
-function numExportMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to numExportMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% Load data to be saved
-k = any(strcmp('PSI_num',fieldnames(handles))); % Check if numerical data exists in memory
-if ~k % If it doesn't, display error
-    errordlg('No numerical data exists in memory, nothing to export.');
-end
-PSI = handles.PSI_num;
-x = handles.x_num;
-t = handles.t_num;
-exportData(PSI, x, t, handles);
-
-% --------------------------------------------------------------------
-function exportData(PSI, x, t, handles)
-% hObject    handle to exportDataMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-defaultName = [datestr(date, 'yyyymmdd'), '.mat'];
-
-extensions = {'*.mat',...
- 'MATLAB MAT file (*.mat)';
- '*.csv', 'Comma Separate Values (*.csv)';...
- '*.txt','Space-delimited TXT (*.txt)';...
- '*.*',  'All Files (*.*)'};
-
-[filename, pathname, index] = uiputfile(extensions, 'Save as', defaultName);
-
-if isequal(filename,0) || isequal(pathname,0) % Canceled
-   return;
-else
-   fullfile = [pathname, '\', filename];
-   if index == 1 % mat
-       save(fullfile, 'PSI', 'x', 't');
-   elseif index == 2 %csv
-       full = [[NaN, x']; t PSI];
-       dlmwrite(fullfile,full,'delimiter',',','precision',handles.pref.dec)
-   elseif index == 3 % space-delimited txt
-       full = [[NaN, x']; t PSI];
-       dlmwrite(fullfile,full,'delimiter',' ','precision',handles.pref.dec)
-   else
-       error('Cant save in this extensions');
-   end
 end
 
-
-% --------------------------------------------------------------------
-function exportDataMenu_Callback(hObject, eventdata, handles)
-% hObject    handle to exportDataMenu (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-
-% --- Executes on key press with focus on main_GUI or any of its controls.
-function main_GUI_WindowKeyPressFcn(hObject, eventdata, handles)
-% hObject    handle to main_GUI (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.FIGURE)
-%	Key: name of the key that was pressed, in lower case
-%	Character: character interpretation of the key(s) that was pressed
-%	Modifier: name(s) of the modifier key(s) (i.e., control, shift) pressed
-% handles    structure with handles and user data (see GUIDATA)
-switch eventdata.Key
-  case 'return'
-    runDTButton_Callback(hObject, eventdata, handles);
 end
-
-
-function analFourierSwitch_Callback(hObject, eventdata, handles)
-pref = handles.pref;
-PSI = handles.PSI_anal;
-t = handles.t_anal;
-k = handles.k_anal;
-if strcmp(handles.analFourierPlotMode, 'lines'); % Axes are in density plot mode
-    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.analInverseAxes, 'density');
-    handles.analFourierPlotMode = 'density';
-else
-    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.analInverseAxes, 'lines');
-    handles.analFourierPlotMode = 'lines';
-end
-title('Analytical');
-guidata(hObject, handles);
-
-
-function numFourierSwitch_Callback(hObject, eventdata, handles)
-pref = handles.pref;
-PSI = handles.PSI_num;
-t = handles.t_num;
-k = handles.k_num;
-if strcmp(handles.numFourierPlotMode, 'lines'); % Axes are in density plot mode
-    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.numInverseAxes, 'density');
-    handles.numFourierPlotMode = 'density';
-else
-    fourierPlot(PSI, t, k, pref.fourierLines, 1, handles.numInverseAxes, 'lines');
-    handles.numFourierPlotMode = 'lines';
-end
-title('Numerical');
-guidata(hObject, handles);
